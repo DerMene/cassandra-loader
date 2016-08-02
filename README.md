@@ -1,5 +1,15 @@
 # CASSANDRA-LOADER
 
+## Note on the fork
+
+This forks adds features I needed to import csv data to cassandra.
+Usage has changed, since I removed the custom build steps:
+
+```
+java -cp <jar file> com.datastax.loader.CqlDelimLoad -f <filename> -host <ipaddress> -schema <schema> [OPTIONS]
+```
+
+
 ## Introduction
 
 cassandra-loader is a general-purpose, delimited-file, bulk loader for 
