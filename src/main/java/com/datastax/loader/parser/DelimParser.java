@@ -15,17 +15,13 @@
  */
 package com.datastax.loader.parser;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.regex.Pattern;
-import java.util.StringTokenizer;
 import java.lang.String;
 import java.lang.StringBuilder;
 import java.lang.System;
 import java.lang.NumberFormatException;
 import java.lang.IndexOutOfBoundsException;
-import java.io.StringReader;
 import java.io.IOException;
 import java.text.ParseException;
 import com.datastax.driver.core.Row;
@@ -47,8 +43,10 @@ public class DelimParser {
 
     private CsvParser csvp = null;
 
-    public static String DEFAULT_DELIMITER = ",";
-    public static String DEFAULT_NULLSTRING = "";
+    public static final String DEFAULT_DELIMITER = ",";
+    public static final String DEFAULT_NULLSTRING = "";
+    public static final char DEFAULT_QUOTE = '\"';
+    public static final char DEFAULT_ESCAPE = '\\';
 
     public DelimParser() {
 	this(DEFAULT_DELIMITER);
@@ -58,7 +56,11 @@ public class DelimParser {
 	this(inDelimiter, DEFAULT_NULLSTRING);
     }
 
-    public DelimParser(String inDelimiter, String inNullString) {
+	public DelimParser(String inDelimiter, String inNullString) {
+		this(inDelimiter, inNullString, DEFAULT_QUOTE, DEFAULT_ESCAPE);
+	}
+
+	public DelimParser(String inDelimiter, String inNullString, char inQuote, char inEscape) {
 	parsers = new ArrayList<Parser>();
 	elements = new ArrayList<Object>();
 	skip = new ArrayList<Boolean>();
@@ -72,14 +74,14 @@ public class DelimParser {
 	else
 	    nullString = inNullString;
 	delim = ("\\t".equals(delimiter)) ?  '\t' : delimiter.charAt(0);
-	quote = '\"';
-	escape = '\\';
+	this.quote = inQuote;
+	this.escape = inEscape;
 
 	CsvParserSettings settings = new CsvParserSettings();
 	settings.getFormat().setLineSeparator("\n");
 	settings.getFormat().setDelimiter(delim);
-	settings.getFormat().setQuote(quote);
-	settings.getFormat().setQuoteEscape(escape);
+	settings.getFormat().setQuote(this.quote);
+	settings.getFormat().setQuoteEscape(this.escape);
 	
 	csvp = new CsvParser(settings);
     }

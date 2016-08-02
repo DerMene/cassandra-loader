@@ -21,19 +21,7 @@ import com.datastax.loader.futures.PrintingFutureSet;
 
 import java.lang.System;
 import java.lang.String;
-import java.lang.StringBuilder;
-import java.lang.Integer;
-import java.lang.Runtime;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.Deque;
-import java.util.ArrayDeque;
-import java.util.Comparator;
-import java.util.Arrays;
 import java.util.Locale;
 import java.io.File;
 import java.io.BufferedReader;
@@ -44,27 +32,19 @@ import java.io.FileOutputStream;
 import java.io.BufferedOutputStream;
 import java.io.PrintStream;
 import java.text.ParseException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
-import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
-import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.ResultSetFuture;
-import com.datastax.driver.core.policies.TokenAwarePolicy;
-import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
 
 class CqlDelimLoadTask implements Callable<Long> {
     private String BADPARSE = ".BADPARSE";
@@ -99,6 +79,9 @@ class CqlDelimLoadTask implements Callable<Long> {
     private String dateFormatString = null;
     private String nullString = null;
     private String delimiter = null;
+	private Character quote = null;
+	private Character escape = null;
+
     private TimeUnit unit = TimeUnit.SECONDS;
     private long queryTimeout = 2;
     private int numRetries = 1;
@@ -106,41 +89,58 @@ class CqlDelimLoadTask implements Callable<Long> {
     private long insertErrors = 0;
     private boolean nullsUnset;
 
-    public CqlDelimLoadTask(String inCqlSchema, String inDelimiter, 
-			    String inNullString, String inDateFormatString,
-			    BooleanParser.BoolStyle inBoolStyle, 
-			    Locale inLocale, 
-			    long inMaxErrors, long inSkipRows, 
-			    String inSkipCols, long inMaxRows,
-			    String inBadDir, File inFile,
-			    Session inSession, ConsistencyLevel inCl,
-			    int inNumFutures, int inBatchSize, int inNumRetries, 
-			    int inQueryTimeout, long inMaxInsertErrors,
-			    String inSuccessDir, String inFailureDir,
-			    boolean inNullsUnset) {
-	super();
-	cqlSchema = inCqlSchema;
-	delimiter = inDelimiter;
-	nullString = inNullString;
-	dateFormatString = inDateFormatString;
-	boolStyle = inBoolStyle;
-	locale = inLocale;
-	maxErrors = inMaxErrors;
-	skipRows = inSkipRows;
-	skipCols = inSkipCols;
-	maxRows = inMaxRows;
-	badDir = inBadDir;
-	infile = inFile;
-	session = inSession;
-	consistencyLevel = inCl;
-	numFutures = inNumFutures;
-	batchSize = inBatchSize;
-	numRetries = inNumRetries;
-	queryTimeout = inQueryTimeout;
-	maxInsertErrors = inMaxInsertErrors;
-	successDir = inSuccessDir;
-	failureDir = inFailureDir;
-	nullsUnset = inNullsUnset;
+	public CqlDelimLoadTask(String inCqlSchema, String inDelimiter,
+							String inNullString, String inDateFormatString,
+							BooleanParser.BoolStyle inBoolStyle,
+							Locale inLocale,
+							long inMaxErrors, long inSkipRows,
+							String inSkipCols, long inMaxRows,
+							String inBadDir, File inFile,
+							Session inSession, ConsistencyLevel inCl,
+							int inNumFutures, int inBatchSize, int inNumRetries,
+							int inQueryTimeout, long inMaxInsertErrors,
+							String inSuccessDir, String inFailureDir,
+							boolean inNullsUnset) {
+		super();
+		cqlSchema = inCqlSchema;
+		delimiter = inDelimiter;
+		nullString = inNullString;
+		dateFormatString = inDateFormatString;
+		boolStyle = inBoolStyle;
+		locale = inLocale;
+		maxErrors = inMaxErrors;
+		skipRows = inSkipRows;
+		skipCols = inSkipCols;
+		maxRows = inMaxRows;
+		badDir = inBadDir;
+		infile = inFile;
+		session = inSession;
+		consistencyLevel = inCl;
+		numFutures = inNumFutures;
+		batchSize = inBatchSize;
+		numRetries = inNumRetries;
+		queryTimeout = inQueryTimeout;
+		maxInsertErrors = inMaxInsertErrors;
+		successDir = inSuccessDir;
+		failureDir = inFailureDir;
+		nullsUnset = inNullsUnset;
+	}
+
+	public CqlDelimLoadTask(String inCqlSchema, String inDelimiter,
+							String inNullString, String inDateFormatString,
+							BooleanParser.BoolStyle inBoolStyle,
+							Locale inLocale,
+							long inMaxErrors, long inSkipRows,
+							String inSkipCols, long inMaxRows,
+							String inBadDir, File inFile,
+							Session inSession, ConsistencyLevel inCl,
+							int inNumFutures, int inBatchSize, int inNumRetries,
+							int inQueryTimeout, long inMaxInsertErrors,
+							String inSuccessDir, String inFailureDir,
+							boolean inNullsUnset, Character quote, Character escape) {
+		this(inCqlSchema, inDelimiter, inNullString, inDateFormatString, inBoolStyle, inLocale, inMaxErrors, inSkipRows, inSkipCols, inMaxRows, inBadDir, inFile, inSession, inCl, inNumFutures, inBatchSize, inNumRetries, inQueryTimeout, inMaxInsertErrors, inSuccessDir, inFailureDir, inNullsUnset);
+		this.quote = quote;
+		this.escape = escape;
     }
 
     public Long call() throws IOException, ParseException {

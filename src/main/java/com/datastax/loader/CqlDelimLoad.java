@@ -88,7 +88,7 @@ import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
 import com.codahale.metrics.Timer;
 
 public class CqlDelimLoad {
-    private String version = "0.0.20";
+    private String version = "0.0.21-SNAPSHOT";
     private String host = null;
     private int port = 9042;
     private String username = null;
@@ -130,6 +130,8 @@ public class CqlDelimLoad {
     private String dateFormatString = null;
     private String nullString = null;
     private String delimiter = null;
+    private Character quote = null;
+    private Character escape = null;
 
     private int numThreads = Runtime.getRuntime().availableProcessors();
     private int batchSize = 1;
@@ -141,6 +143,8 @@ public class CqlDelimLoad {
 	usage.append("OPTIONS:\n");
 	usage.append("  -configFile <filename>         File with configuration options\n");
 	usage.append("  -delim <delimiter>             Delimiter to use [,]\n");
+	usage.append("  -quote <quote>                 Quote character to use [\"]\n");
+	usage.append("  -escape <escape>               Escape character to use [\\]\n");
 	usage.append("  -dateFormat <dateFormatString> Date format [default for Locale.ENGLISH]\n");
 	usage.append("  -nullString <nullString>       String that signifies NULL [none]\n");
 	usage.append("  -skipRows <skipRows>           Number of rows to skip [0]\n");
@@ -384,6 +388,18 @@ public class CqlDelimLoad {
 	if (null != (tkey = amap.remove("-dateFormat")))    dateFormatString = tkey;
 	if (null != (tkey = amap.remove("-nullString")))    nullString = tkey;
 	if (null != (tkey = amap.remove("-delim")))         delimiter = tkey;
+	if (null != (tkey = amap.remove("-quote"))) {
+		if (tkey.length() != 1) {
+			System.err.println("Bad quote parameter, must be single character.");
+		}
+		quote = tkey.charAt(0);
+	}
+	if (null != (tkey = amap.remove("-escape"))) {
+		if (tkey.length() != 1) {
+			System.err.println("Bad escape parameter, must be single character.");
+		}
+		escape = tkey.charAt(0);
+	}
 	if (null != (tkey = amap.remove("-numThreads")))    numThreads = Integer.parseInt(tkey);
 	if (null != (tkey = amap.remove("-rate")))          rate = Double.parseDouble(tkey);
 	if (null != (tkey = amap.remove("-progressRate")))  progressRate = Long.parseLong(tkey);
@@ -558,20 +574,8 @@ public class CqlDelimLoad {
 	if (onefile) {
 	    // One file/stdin to process
 	    executor = Executors.newSingleThreadExecutor();
-	    Callable<Long> worker = new CqlDelimLoadTask(cqlSchema, delimiter, 
-							 nullString,
-							 dateFormatString, 
-							 boolStyle, locale, 
-							 maxErrors, skipRows,
-							 skipCols,
-							 maxRows, badDir, infile, 
-							 session, consistencyLevel,
-							 numFutures, batchSize,
-							 numRetries, queryTimeout,
-							 maxInsertErrors, 
-							 successDir, failureDir,
-							 nullsUnset);
-	    Future<Long> res = executor.submit(worker);
+		Callable<Long> worker = getWorker(infile);
+		Future<Long> res = executor.submit(worker);
 	    total = res.get();
 	    executor.shutdown();
 	}
@@ -580,22 +584,8 @@ public class CqlDelimLoad {
 	    Set<Future<Long>> results = new HashSet<Future<Long>>();
 	    while (!fileList.isEmpty()) {
 		File tFile = fileList.pop();
-		Callable<Long> worker = new CqlDelimLoadTask(cqlSchema, delimiter,
-							     nullString,
-							     dateFormatString, 
-							     boolStyle, locale, 
-							     maxErrors, skipRows,
-							     skipCols,
-							     maxRows, badDir, tFile, 
-							     session,
-							     consistencyLevel,
-							     numFutures, batchSize,
-							     numRetries, 
-							     queryTimeout,
-							     maxInsertErrors, 
-							     successDir, failureDir,
-							     nullsUnset);
-		results.add(executor.submit(worker));
+			Callable<Long> worker = getWorker(tFile);
+			results.add(executor.submit(worker));
 	    }
 	    executor.shutdown();
 	    for (Future<Long> res : results)
@@ -609,7 +599,25 @@ public class CqlDelimLoad {
 	return true;
     }
 
-    public static void main(String[] args) 
+	private Callable<Long> getWorker(File tFile) {
+		return new CqlDelimLoadTask(cqlSchema, delimiter,
+                                     nullString,
+                                     dateFormatString,
+                                     boolStyle, locale,
+                                     maxErrors, skipRows,
+                                     skipCols,
+                                     maxRows, badDir, tFile,
+                                     session,
+                                     consistencyLevel,
+                                     numFutures, batchSize,
+                                     numRetries,
+                                     queryTimeout,
+                                     maxInsertErrors,
+                                     successDir, failureDir,
+                                     nullsUnset, quote, escape);
+	}
+
+	public static void main(String[] args)
 	throws IOException, ParseException, InterruptedException, ExecutionException, 
 	       KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException, 
 	       CertificateException, KeyManagementException {

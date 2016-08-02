@@ -1,28 +1,9 @@
+group 'de.gdata.adan.wss'
+version '0.0.21-SNAPSHOT'
+
 apply plugin: 'java'
-apply plugin: 'application'
 
-def versionNum = '0.0.20'
-
-allprojects {
-    tasks.withType(JavaCompile) {
-        options.compilerArgs << "-Xlint:unchecked"
-    }
-}
-
-task loader(type: Exec) {
-    dependsOn << 'uberloader'
-    commandLine './src/make/buildit.sh'
-}
-
-task unloader(type: Exec) {
-    dependsOn << 'uberunloader'
-    commandLine './src/make/unloader.sh'
-}
-
-jar {
-    baseName = 'cassandra-loader'
-    version = versionNum
-}
+sourceCompatibility = 1.7
 
 repositories {
     mavenCentral()
@@ -37,30 +18,18 @@ dependencies {
     compile 'org.apache.commons:commons-lang3:3.0'
 }
 
-task uberloader(type: Jar) {
-    dependsOn << 'compileJava'
-    from "src/main/resources/logback.xml"
-    from files(sourceSets.main.output.classesDir)
-    from(configurations.runtime.asFileTree.files.collect { zipTree(it) }) {
-        exclude "META-INF/**"
-    }
-    manifest {
-        attributes "Main-Class" : 'com.datastax.loader.CqlDelimLoad'
-    }
-    baseName = 'cassandra-loader-uber'
-    version =  versionNum
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.11'
 }
 
-task uberunloader(type: Jar) {
-    dependsOn << 'compileJava'
-    from "src/main/resources/logback.xml"
-    from files(sourceSets.main.output.classesDir)
-    from(configurations.runtime.asFileTree.files.collect { zipTree(it) }) {
-        exclude "META-INF/**"
+task setVersionNumber << {
+    def setVersionInFile = { String filePath ->
+        def unloadFile = new File(filePath)
+        unloadFile.text = unloadFile.text.replaceFirst("version = \"[0-9]+\\.[0-9]+\\.[0-9]+(-SNAPSHOT)?\";", "version = \"$version\";")
     }
-    manifest {
-        attributes "Main-Class" : 'com.datastax.loader.CqlDelimUnload'
-    }
-    baseName = 'cassandra-unloader-uber'
-    version =  versionNum
+
+    setVersionInFile("$projectDir/src/main/java/com/datastax/loader/CqlDelimUnload.java")
+    setVersionInFile("$projectDir/src/main/java/com/datastax/loader/CqlDelimLoad.java")
 }
+
+build.dependsOn setVersionNumber
