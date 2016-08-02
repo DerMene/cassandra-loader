@@ -75,6 +75,7 @@ public class CqlDelimLoad {
     private String delimiter = null;
     private Character quote = null;
     private Character escape = null;
+    private Integer maxCharsPerColumn = null;
 
     private int numThreads = Runtime.getRuntime().availableProcessors();
     private int batchSize = 1;
@@ -116,7 +117,8 @@ public class CqlDelimLoad {
 	usage.append("  -rateFile <filename>           Where to print the rate statistics\n");
 	usage.append("  -successDir <dir>              Directory where to move successfully loaded files\n");
 	usage.append("  -failureDir <dir>              Directory where to move files that did not successfully load\n");
-	usage.append("  -nullsUnset [false|true]         Treat nulls as unset [faslse]\n");
+	usage.append("  -nullsUnset [false|true]       Treat nulls as unset [false]\n");
+	usage.append("  -maxCharsPerColumn <int>       Buffer size for parsing columns [4096]\n");
 
 	usage.append("\n\nExamples:\n");
 	usage.append("cassandra-loader -f /path/to/file.csv -host localhost -schema \"test.test3(a, b, c)\"\n");
@@ -343,6 +345,7 @@ public class CqlDelimLoad {
 		}
 		escape = tkey.charAt(0);
 	}
+	if (null != (tkey = amap.remove("-maxCharsPerColumn")))    maxCharsPerColumn = Integer.parseInt(tkey);
 	if (null != (tkey = amap.remove("-numThreads")))    numThreads = Integer.parseInt(tkey);
 	if (null != (tkey = amap.remove("-rate")))          rate = Double.parseDouble(tkey);
 	if (null != (tkey = amap.remove("-progressRate")))  progressRate = Long.parseLong(tkey);
@@ -557,7 +560,7 @@ public class CqlDelimLoad {
                                      queryTimeout,
                                      maxInsertErrors,
                                      successDir, failureDir,
-                                     nullsUnset, quote, escape);
+                                     nullsUnset, quote, escape, maxCharsPerColumn);
 	}
 
 	public static void main(String[] args)

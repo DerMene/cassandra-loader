@@ -66,6 +66,7 @@ class CqlDelimLoadTask implements Callable<Long> {
     private String delimiter = null;
 	private Character quote = null;
 	private Character escape = null;
+	private Integer maxCharsPerColumn = null;
 
     private TimeUnit unit = TimeUnit.SECONDS;
     private long queryTimeout = 2;
@@ -122,10 +123,11 @@ class CqlDelimLoadTask implements Callable<Long> {
 							int inNumFutures, int inBatchSize, int inNumRetries,
 							int inQueryTimeout, long inMaxInsertErrors,
 							String inSuccessDir, String inFailureDir,
-							boolean inNullsUnset, Character quote, Character escape) {
+							boolean inNullsUnset, Character quote, Character escape, Integer maxCharsPerColumn) {
 		this(inCqlSchema, inDelimiter, inNullString, inDateFormatString, inBoolStyle, inLocale, inMaxErrors, inSkipRows, inSkipCols, inMaxRows, inBadDir, inFile, inSession, inCl, inNumFutures, inBatchSize, inNumRetries, inQueryTimeout, inMaxInsertErrors, inSuccessDir, inFailureDir, inNullsUnset);
 		this.quote = quote;
 		this.escape = escape;
+		this.maxCharsPerColumn = maxCharsPerColumn;
     }
 
     public Long call() throws IOException, ParseException {
@@ -151,10 +153,11 @@ class CqlDelimLoadTask implements Callable<Long> {
 	    logFname = badDir + "/" + readerName + LOG;
 	    logPrinter = new PrintStream(new BufferedOutputStream(new FileOutputStream(logFname)));
 	}
-	    
+
 	cdp = new CqlDelimParser(cqlSchema, delimiter, nullString, 
 				 dateFormatString, boolStyle, locale, 
-				 skipCols, session, true);
+				 skipCols, session, true, quote, escape, maxCharsPerColumn);
+
 	insert = cdp.generateInsert();
 	statement = session.prepare(insert);
 	statement.setRetryPolicy(new LoaderRetryPolicy(numRetries));

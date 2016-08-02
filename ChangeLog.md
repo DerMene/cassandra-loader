@@ -1,3 +1,8 @@
+## 0.0.21-SNAPSHOT
+- Added -quote
+- Added -escape
+- Added -maxCharsPerColumn
+
 ## 0.0.20
 - Fixed delimiter in MapParser
 - Catch NULLs in Map/Set/List parsing and throw in BADPARSE

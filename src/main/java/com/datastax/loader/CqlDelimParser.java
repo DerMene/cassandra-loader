@@ -48,12 +48,12 @@ public class CqlDelimParser {
     public CqlDelimParser(String inCqlSchema, String inDelimiter,
 			  String inNullString, String inDateFormatString,
 			  BooleanParser.BoolStyle inBoolStyle, Locale inLocale,
-			  String skipList, Session session, boolean bLoader, char quote, char escape)
+			  String skipList, Session session, boolean bLoader, Character quote, Character escape, Integer maxCharsPerColumn)
 	throws ParseException {
 	// Optionally provide things for the line parser - date format, boolean format, locale
 	initPmap(inDateFormatString, inBoolStyle, inLocale, bLoader);
 	processCqlSchema(inCqlSchema, session);
-	createDelimParser(inDelimiter, inNullString, skipList);
+	createDelimParser(inDelimiter, inNullString, skipList, quote, escape, maxCharsPerColumn);
     }
 
     // used internally to store schema information
@@ -188,8 +188,8 @@ public class CqlDelimParser {
 
     // Creates the DelimParser that will parse the line
     private void createDelimParser(String delimiter, String nullString,
-				   String skipList, char quote, char escape) throws NumberFormatException {
-	delimParser = new DelimParser(delimiter, nullString);
+				   String skipList, Character quote, Character escape, Integer maxCharsPerColumn) throws NumberFormatException {
+	delimParser = new DelimParser(delimiter, nullString, quote, escape, maxCharsPerColumn);
 	for (int i = 0; i < sbl.size(); i++)
 	    delimParser.add(sbl.get(i).parser);
 	if (null != skipList) {

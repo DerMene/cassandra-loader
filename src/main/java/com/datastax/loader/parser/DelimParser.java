@@ -52,32 +52,48 @@ public class DelimParser {
     }
 
 	public DelimParser(String inDelimiter, String inNullString) {
-		this(inDelimiter, inNullString, DEFAULT_QUOTE, DEFAULT_ESCAPE);
+		this(inDelimiter, inNullString, DEFAULT_QUOTE, DEFAULT_ESCAPE, null);
 	}
 
-	public DelimParser(String inDelimiter, String inNullString, char inQuote, char inEscape) {
+	public DelimParser(String inDelimiter, String inNullString, Character inQuote, Character inEscape, Integer inMaxCharsPerColumn) {
 	parsers = new ArrayList<Parser>();
 	elements = new ArrayList<Object>();
 	skip = new ArrayList<Boolean>();
 	parsersSize = parsers.size();
-	if (null == inDelimiter)
-	    delimiter = DEFAULT_DELIMITER;
-	else 
-	    delimiter = inDelimiter;
-	if (null == inNullString)
-	    nullString = DEFAULT_NULLSTRING;
-	else
-	    nullString = inNullString;
+	if (null == inDelimiter) {
+		delimiter = DEFAULT_DELIMITER;
+	}
+	else {
+		delimiter = inDelimiter;
+	}
+	if (null == inNullString) {
+		nullString = DEFAULT_NULLSTRING;
+	}
+	else {
+		nullString = inNullString;
+	}
 	delim = ("\\t".equals(delimiter)) ?  '\t' : delimiter.charAt(0);
-	this.quote = inQuote;
-	this.escape = inEscape;
+
+	if (null == inQuote) {
+		this.quote = DEFAULT_QUOTE;
+	} else {
+		this.quote = inQuote;
+	}
+
+	if (null == inEscape) {
+		this.escape = DEFAULT_ESCAPE;
+	} else {
+		this.escape = inEscape;
+	}
 
 	CsvParserSettings settings = new CsvParserSettings();
 	settings.getFormat().setLineSeparator("\n");
 	settings.getFormat().setDelimiter(delim);
 	settings.getFormat().setQuote(this.quote);
 	settings.getFormat().setQuoteEscape(this.escape);
-	
+	if (inMaxCharsPerColumn != null) {
+		settings.setMaxCharsPerColumn(inMaxCharsPerColumn);
+	}
 	csvp = new CsvParser(settings);
     }
     
