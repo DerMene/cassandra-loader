@@ -15,12 +15,8 @@
  */
 package com.datastax.loader.parser;
 
-import java.lang.String;
-import java.nio.ByteBuffer;
-import java.lang.IndexOutOfBoundsException;
 import javax.xml.bind.DatatypeConverter;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.exceptions.InvalidTypeException;
+import java.nio.ByteBuffer;
 
 // ByteBuffer parser
 public class ByteBufferParser extends AbstractParser {

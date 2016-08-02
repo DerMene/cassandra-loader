@@ -15,21 +15,13 @@
  */
 package com.datastax.loader.parser;
 
-import java.lang.String;
-import java.lang.Character;
-import java.lang.StringBuilder;
-import java.lang.IndexOutOfBoundsException;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.io.StringReader;
-import java.io.IOException;
-import java.text.ParseException;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.exceptions.InvalidTypeException;
-
 import com.univocity.parsers.csv.CsvParser;
 import com.univocity.parsers.csv.CsvParserSettings;
+
+import java.text.ParseException;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 public class SetParser extends AbstractParser {
     private Parser parser;

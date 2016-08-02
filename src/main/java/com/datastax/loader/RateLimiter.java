@@ -15,11 +15,12 @@
  */
 package com.datastax.loader;
 
+import com.codahale.metrics.Snapshot;
+import com.codahale.metrics.Timer;
+
 import java.io.PrintStream;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-import com.codahale.metrics.Timer;
-import com.codahale.metrics.Snapshot;
 
 public class RateLimiter {
     private com.google.common.util.concurrent.RateLimiter rateLimiter;

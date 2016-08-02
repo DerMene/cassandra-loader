@@ -15,12 +15,7 @@
  */
 package com.datastax.loader.parser;
 
-import java.lang.String;
 import java.util.UUID;
-import java.lang.IllegalArgumentException;
-import java.lang.IndexOutOfBoundsException;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.exceptions.InvalidTypeException;
 
 // UUID parser
 public class UUIDParser extends AbstractParser {

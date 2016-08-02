@@ -1,16 +1,11 @@
 package com.datastax.loader;
 
-import java.lang.String;
-import java.io.File;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-
-import com.datastax.driver.core.policies.RetryPolicy;
+import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Statement;
-import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.WriteType;
 import com.datastax.driver.core.exceptions.DriverException;
+import com.datastax.driver.core.policies.RetryPolicy;
 
 class LoaderRetryPolicy implements RetryPolicy {
     private int numRetries;

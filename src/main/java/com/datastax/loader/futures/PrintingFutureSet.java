@@ -1,6 +1,5 @@
 package com.datastax.loader.futures;
 
-import java.lang.System;
 import java.io.PrintStream;
 
 public class PrintingFutureSet extends ActionFutureSet {

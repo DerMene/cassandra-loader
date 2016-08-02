@@ -1,9 +1,6 @@
 package com.datastax.loader.futures;
 
-import java.lang.System;
 import java.io.PrintStream;
-
-import com.datastax.driver.core.ResultSetFuture;
 
 public class PrintingFutureList extends ActionFutureList {
     public PrintingFutureList() {

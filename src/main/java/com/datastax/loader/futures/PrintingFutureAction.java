@@ -1,10 +1,9 @@
 package com.datastax.loader.futures;
 
-import java.lang.String;
-import java.lang.Throwable;
+import com.datastax.driver.core.ResultSet;
+
 import java.io.PrintStream;
 import java.util.concurrent.atomic.AtomicLong;
-import com.datastax.driver.core.ResultSet;
 
 public class PrintingFutureAction implements FutureAction {
     protected PrintStream logPrinter = null;

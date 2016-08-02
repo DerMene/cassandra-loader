@@ -15,15 +15,11 @@
  */
 package com.datastax.loader.parser;
 
-import java.lang.String;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.text.ParseException;
-import java.lang.IndexOutOfBoundsException;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.exceptions.InvalidTypeException;
 
 // Date parser - takes a format string
 public class DateParser extends AbstractParser {

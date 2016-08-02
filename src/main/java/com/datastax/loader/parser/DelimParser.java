@@ -15,20 +15,15 @@
  */
 package com.datastax.loader.parser;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.lang.String;
-import java.lang.StringBuilder;
-import java.lang.System;
-import java.lang.NumberFormatException;
-import java.lang.IndexOutOfBoundsException;
-import java.io.IOException;
-import java.text.ParseException;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.exceptions.InvalidTypeException;
-
 import com.univocity.parsers.csv.CsvParser;
 import com.univocity.parsers.csv.CsvParserSettings;
+
+import java.io.IOException;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DelimParser {
     private List<Parser> parsers;

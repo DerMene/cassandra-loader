@@ -15,12 +15,7 @@
  */
 package com.datastax.loader.parser;
 
-import java.lang.String;
 import java.math.BigInteger;
-import java.lang.NumberFormatException;
-import java.lang.IndexOutOfBoundsException;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.exceptions.InvalidTypeException;
 
 // BigInteger parser
 public class BigIntegerParser extends AbstractParser {

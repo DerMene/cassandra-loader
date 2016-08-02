@@ -15,36 +15,21 @@
  */
 package com.datastax.loader;
 
-import com.datastax.loader.parser.BooleanParser;
+import com.datastax.driver.core.*;
 import com.datastax.loader.futures.FutureManager;
 import com.datastax.loader.futures.PrintingFutureSet;
+import com.datastax.loader.parser.BooleanParser;
 
-import java.lang.System;
-import java.lang.String;
-import java.util.List;
-import java.util.Locale;
-import java.io.File;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.InputStreamReader;
-import java.io.IOException;
-import java.io.FileOutputStream;
-import java.io.BufferedOutputStream;
-import java.io.PrintStream;
-import java.text.ParseException;
-import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-
-import com.datastax.driver.core.Session;
-import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.ConsistencyLevel;
-import com.datastax.driver.core.BoundStatement;
-import com.datastax.driver.core.BatchStatement;
-import com.datastax.driver.core.ResultSetFuture;
+import java.text.ParseException;
+import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 
 class CqlDelimLoadTask implements Callable<Long> {
     private String BADPARSE = ".BADPARSE";

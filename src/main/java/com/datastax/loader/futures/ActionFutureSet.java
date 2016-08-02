@@ -1,18 +1,12 @@
 package com.datastax.loader.futures;
 
-import java.lang.String;
-import java.lang.System;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.ResultSetFuture;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicLong;
-
-import com.datastax.driver.core.ResultSetFuture;
-import com.datastax.driver.core.ResultSet;
-
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.FutureCallback;
 
 public class ActionFutureSet extends AbstractFutureManager {
     protected FutureAction futureAction = null;

@@ -15,13 +15,9 @@
  */
 package com.datastax.loader.parser;
 
-import java.lang.String;
 import java.net.InetAddress;
-import java.text.ParseException;
 import java.net.UnknownHostException;
-import java.lang.IndexOutOfBoundsException;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.exceptions.InvalidTypeException;
+import java.text.ParseException;
 
 // InetAddress parser
 public class InetAddressParser extends AbstractParser {

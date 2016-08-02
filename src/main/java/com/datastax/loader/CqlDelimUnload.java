@@ -15,66 +15,22 @@
  */
 package com.datastax.loader;
 
+import com.datastax.driver.core.*;
+import com.datastax.driver.core.exceptions.QueryValidationException;
+import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
+import com.datastax.driver.core.policies.TokenAwarePolicy;
 import com.datastax.loader.parser.BooleanParser;
 
-import java.lang.System;
-import java.lang.String;
-import java.lang.StringBuilder;
-import java.lang.Integer;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.Deque;
-import java.util.ArrayDeque;
-import java.util.Locale;
-import java.math.BigInteger;
-import java.io.FileOutputStream;
-import java.io.BufferedOutputStream;
-import java.io.PrintStream;
-import java.io.File;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.InputStreamReader;
-import java.io.InputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.FileNotFoundException;
-import java.text.ParseException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.security.KeyStore;
-import java.security.SecureRandom;
-import java.security.KeyStoreException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
-
-import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.Session;
-import com.datastax.driver.core.ColumnMetadata;
-import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.PoolingOptions;
-import com.datastax.driver.core.HostDistance;
-import com.datastax.driver.core.BoundStatement;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.ConsistencyLevel;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.SSLOptions;
-import com.datastax.driver.core.JdkSSLOptions;
-import com.datastax.driver.core.policies.TokenAwarePolicy;
-import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
-import com.datastax.driver.core.exceptions.QueryValidationException;
+import java.io.*;
+import java.math.BigInteger;
+import java.security.*;
+import java.security.cert.CertificateException;
+import java.text.ParseException;
+import java.util.*;
+import java.util.concurrent.*;
 
 
 public class CqlDelimUnload {

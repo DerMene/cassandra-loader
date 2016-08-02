@@ -1,12 +1,10 @@
 package com.datastax.loader.futures;
 
-import java.lang.String;
-import java.lang.System;
-import java.util.List;
-import java.util.ArrayList;
-
-import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.ResultSetFuture;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ActionFutureList extends AbstractFutureManager {
     protected List<ResultSetFuture> futures;

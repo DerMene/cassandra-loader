@@ -15,15 +15,10 @@
  */
 package com.datastax.loader.parser;
 
-import java.lang.String;
-import java.lang.Number;
-import java.util.Locale;
-import java.text.NumberFormat;
 import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.text.ParseException;
-import java.lang.IndexOutOfBoundsException;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.exceptions.InvalidTypeException;
+import java.util.Locale;
 
 // General number parser
 // This is useful as it can take care of Locales for us

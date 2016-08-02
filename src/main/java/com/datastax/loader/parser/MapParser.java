@@ -15,23 +15,14 @@
  */
 package com.datastax.loader.parser;
 
-import java.lang.String;
-import java.lang.Character;
-import java.lang.StringBuilder;
-import java.lang.IndexOutOfBoundsException;
-import java.util.Map;
-import java.util.Set;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.io.StringReader;
-import java.io.IOException;
-import java.io.StringReader;
-import java.text.ParseException;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.exceptions.InvalidTypeException;
-
 import com.univocity.parsers.csv.CsvParser;
 import com.univocity.parsers.csv.CsvParserSettings;
+
+import java.io.StringReader;
+import java.text.ParseException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 public class MapParser extends AbstractParser {
     private Parser keyParser;

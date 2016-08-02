@@ -15,12 +15,7 @@
  */
 package com.datastax.loader.parser;
 
-import java.lang.String;
-import java.lang.Boolean;
 import java.text.ParseException;
-import java.lang.IndexOutOfBoundsException;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.exceptions.InvalidTypeException;
 
 // Boolean parser - handles any way that Booleans can be expressed in Java
 public class BooleanParser extends AbstractParser {

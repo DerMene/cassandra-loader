@@ -1,7 +1,8 @@
 package com.datastax.loader.futures;
 
-import java.util.concurrent.TimeUnit;
 import com.datastax.driver.core.ResultSetFuture;
+
+import java.util.concurrent.TimeUnit;
 
 public abstract class AbstractFutureManager implements FutureManager {
     protected int size;

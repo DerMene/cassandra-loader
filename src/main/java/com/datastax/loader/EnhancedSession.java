@@ -15,18 +15,9 @@
  */
 package com.datastax.loader;
 
+import com.datastax.driver.core.*;
+
 import java.util.Map;
-
-import com.datastax.driver.core.Session;
-import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.CloseFuture;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.ResultSetFuture;
-import com.datastax.driver.core.Statement;
-import com.datastax.driver.core.RegularStatement;
-import com.datastax.driver.core.PreparedStatement;
-
-import com.google.common.util.concurrent.ListenableFuture;
 
 public class EnhancedSession implements Session {
     private Session session;

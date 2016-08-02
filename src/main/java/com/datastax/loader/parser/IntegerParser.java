@@ -15,14 +15,8 @@
  */
 package com.datastax.loader.parser;
 
-import java.lang.String;
-import java.lang.Integer;
-import java.lang.Number;
-import java.util.Locale;
 import java.text.ParseException;
-import java.lang.IndexOutOfBoundsException;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.exceptions.InvalidTypeException;
+import java.util.Locale;
 
 // Integer parser - use the Number parser
 public class IntegerParser extends NumberParser {
