@@ -24,6 +24,8 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 import java.io.*;
+import java.nio.file.FileSystems;
+import java.nio.file.PathMatcher;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.text.ParseException;
@@ -73,6 +75,7 @@ public class CqlDelimLoad {
     private String dateFormatString = null;
     private String nullString = null;
     private String delimiter = null;
+    private String filePattern = null;
     private Character quote = null;
     private Character escape = null;
     private Integer maxCharsPerColumn = null;
@@ -83,7 +86,7 @@ public class CqlDelimLoad {
 
     private String usage() {
 	StringBuilder usage = new StringBuilder("version: ").append(version).append("\n");
-	usage.append("Usage: -f <filename> -host <ipaddress> -schema <schema> [OPTIONS]\n");
+	usage.append("Usage: -f <filename|directory> -host <ipaddress> -schema <schema> [OPTIONS]\n");
 	usage.append("OPTIONS:\n");
 	usage.append("  -configFile <filename>         File with configuration options\n");
 	usage.append("  -delim <delimiter>             Delimiter to use [,]\n");
@@ -119,6 +122,7 @@ public class CqlDelimLoad {
 	usage.append("  -failureDir <dir>              Directory where to move files that did not successfully load\n");
 	usage.append("  -nullsUnset [false|true]       Treat nulls as unset [false]\n");
 	usage.append("  -maxCharsPerColumn <int>       Buffer size for parsing columns [4096]\n");
+	usage.append("  -filePattern <pattern>         When -f is a folder: use only files matching this pattern [all files]\n");
 
 	usage.append("\n\nExamples:\n");
 	usage.append("cassandra-loader -f /path/to/file.csv -host localhost -schema \"test.test3(a, b, c)\"\n");
@@ -333,6 +337,15 @@ public class CqlDelimLoad {
 	if (null != (tkey = amap.remove("-dateFormat")))    dateFormatString = tkey;
 	if (null != (tkey = amap.remove("-nullString")))    nullString = tkey;
 	if (null != (tkey = amap.remove("-delim")))         delimiter = tkey;
+	if (null != (tkey = amap.remove("-filePattern"))) {
+		try {
+			FileSystems.getDefault().getPathMatcher(tkey);
+		} catch (Throwable ignored) {
+			System.err.println("Bad filePattern parameter. See https://docs.oracle.com/javase/7/docs/api/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String) for usage");
+			return false;
+		}
+		filePattern = tkey;
+	}
 	if (null != (tkey = amap.remove("-quote"))) {
 		if (tkey.length() != 1) {
 			System.err.println("Bad quote parameter, must be single character.");
@@ -496,22 +509,27 @@ public class CqlDelimLoad {
 	}
 	else {
 	    infile = new File(filename);
-	    if (infile.isFile()) {
-	    }
-	    else {
-		inFileList = infile.listFiles();
-		if (inFileList.length < 1)
-		    throw new IOException("directory is empty");
-		onefile = false;
-		Arrays.sort(inFileList, 
-			    new Comparator<File>() {
-				public int compare(File f1, File f2) {
-				    return f1.getName().compareTo(f2.getName());
-				}
-			    });
-		for (int i = 0; i < inFileList.length; i++)
-		    fileList.push(inFileList[i]);
-	    }
+		if (!infile.isFile()) {
+        inFileList = infile.listFiles();
+        if (inFileList.length < 1)
+            throw new IOException("directory is empty");
+        onefile = false;
+        Arrays.sort(inFileList,
+                new Comparator<File>() {
+                public int compare(File f1, File f2) {
+                    return f1.getName().compareTo(f2.getName());
+                }
+                });
+		PathMatcher matcher = null;
+		if (filePattern != null) {
+			matcher = FileSystems.getDefault().getPathMatcher(filePattern);
+		}
+		for (final File file : inFileList) {
+			if (matcher == null || matcher.matches(file.toPath().getFileName())) {
+				fileList.push(file);
+			}
+		}
+        }
 	}
 
 	// Launch Threads

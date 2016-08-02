@@ -2,6 +2,7 @@
 - Added -quote
 - Added -escape
 - Added -maxCharsPerColumn
+- Added -filePattern
 
 ## 0.0.20
 - Fixed delimiter in MapParser
