@@ -2,7 +2,8 @@
 
 ## Note on the fork
 
-This forks adds features I needed to import csv data to cassandra.
+This forks adds features I needed to import csv data into cassandra.
+
 Usage has changed, since I removed the custom build steps:
 
 ```
@@ -88,9 +89,10 @@ cassandra-loader -f myFileToLoad.csv -host 1.2.3.4 -schema "test.ltest(a, b, c, 
  Switch           | Option             | Default                    | Description
 -----------------:|-------------------:|---------------------------:|:----------
  `-configFile`    | Filename           | none                       | Filename of configuration options 
- `-f`             | Filename           | &lt;REQUIRED&gt;                 | Filename to load - required.
- `-host`          | IP Address         | &lt;REQUIRED&gt;                 | Cassandra connection point - required.
- `-schema`        | CQL schema         | &lt;REQUIRED&gt;                 | Schema of input data - required In the format "keySpace.table(col1,col2,...)" and in the order that the data will be in the file.
+ `-f`             | Filename / Directory  | &lt;REQUIRED&gt;        | Filename or directory to load - required.
+ `-filePattern`   | Filename Pattern          | none (all files)    | If directory is loaded this filters the files to load. The syntax is described in the [getPathMatcher JavaDoc](https://docs.oracle.com/javase/7/docs/api/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String))
+ `-host`          | IP Address         | &lt;REQUIRED&gt;           | Cassandra connection point - required.
+ `-schema`        | CQL schema         | &lt;REQUIRED&gt;           | Schema of input data - required In the format "keySpace.table(col1,col2,...)" and in the order that the data will be in the file.
  `-port`          | Port Number        | 9042                       | Cassandra native protocol port number
  `-user`          | Username           | none                       | Cassandra username
  `-pw`            | Password           | none                       | Cassandra password
@@ -98,12 +100,14 @@ cassandra-loader -f myFileToLoad.csv -host 1.2.3.4 -schema "test.ltest(a, b, c, 
  `-ssl-truststore-pwd`  | Truststore Password | none                | Password to SSL truststore
  `-ssl-keystore-path`   | Keystore Path       | none                | Path to SSL keystore
  `-ssl-keystore-path`   | Keystore Password   | none                | Password to SSL keystore
- '-consistencyLevel | Consistency Level | ONE                       | CQL Consistency Level
+ `-consistencyLevel` | Consistency Level | ONE                       | CQL Consistency Level
  `-numThreads`    | Number of threads  | Number of CPUs             | Number of threads to use (one per file)
  `-numFutures`    | Number of Futures  | 1000                       | Number of Java driver futures in flight.
  `-numRetries`    | Number of retries  | 1                          | Number of times to retry the INSERT before declaring defeat.
  `-queryTimeout`  | Timeout in seconds | 2                          | Amount of time to wait for a query to finish before timing out.
  `-delim`         | Delimiter          | ,                          | Delimiter to use
+ `-quote`         | Quote character          | "                          | Quote-character to use
+ `-escape`         | Quote character          | \                          | Escape-character to use
  `-nullString`    | Null String        | &lt;empty string&gt;             | String to represent NULL data
  `-boolStyle`     | Boolean Style      | TRUE_FALSE                 | String for boolean values.  Options are "1_0", "Y_N", "T_F", "YES_NO", "TRUE_FALSE".
  `-decimalDelim`  | Decimal delimiter  | .                          | Delimiter for decimal values.  Options are "." or ","
@@ -193,11 +197,13 @@ If you do not set the successDir then files that successfully loaded will remain
 ## Usage Statement:
 
 ```
-version: 0.0.20
-Usage: -f <filename> -host <ipaddress> -schema <schema> [OPTIONS]
+version: 0.0.21-SNAPSHOT
+Usage: -f <filename|directory> -host <ipaddress> -schema <schema> [OPTIONS]
 OPTIONS:
   -configFile <filename>         File with configuration options
   -delim <delimiter>             Delimiter to use [,]
+  -quote <quote>                 Quote character to use ["]
+  -escape <escape>               Escape character to use [\]
   -dateFormat <dateFormatString> Date format [default for Locale.ENGLISH]
   -nullString <nullString>       String that signifies NULL [none]
   -skipRows <skipRows>           Number of rows to skip [0]
@@ -226,7 +232,10 @@ OPTIONS:
   -rateFile <filename>           Where to print the rate statistics
   -successDir <dir>              Directory where to move successfully loaded files
   -failureDir <dir>              Directory where to move files that did not successfully load
-  -nullsUnset [false|true]         Treat nulls as unset [faslse]
+  -nullsUnset [false|true]       Treat nulls as unset [false]
+  -maxCharsPerColumn <int>       Buffer size for parsing columns [4096]
+  -filePattern <pattern>         When -f is a folder: use only files matching this pattern [all files]
+
 
 
 Examples:
