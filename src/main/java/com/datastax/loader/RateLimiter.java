@@ -31,14 +31,6 @@ public class RateLimiter {
     private final long firstTime;
     private long lastTime;
 
-    public RateLimiter(double inRate) {
-        this(inRate, Long.MAX_VALUE);
-    }
-
-    public RateLimiter(double inRate, long inUpdateRate) {
-        this(inRate, inUpdateRate, null, null);
-    }
-
     public RateLimiter(double inRate, long inUpdateRate,
                        Timer inTimer, PrintStream inStream) {
         rateLimiter = com.google.common.util.concurrent.RateLimiter.create(inRate);

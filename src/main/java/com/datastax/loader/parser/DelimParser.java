@@ -25,18 +25,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DelimParser {
-    public static final String DEFAULT_DELIMITER = ",";
-    public static final String DEFAULT_NULLSTRING = "";
-    public static final char DEFAULT_QUOTE = '\"';
-    public static final char DEFAULT_ESCAPE = '\\';
+    private static final String DEFAULT_DELIMITER = ",";
+    private static final String DEFAULT_NULLSTRING = "";
+    private static final char DEFAULT_QUOTE = '\"';
+    private static final char DEFAULT_ESCAPE = '\\';
     private final List<Parser> parsers;
     private int parsersSize;
     private final List<Object> elements;
     private final String delimiter;
     private final String nullString;
-    private final char delim;
-    private final char quote;
-    private final char escape;
     private final List<Boolean> skip;
     private CsvParser csvp = null;
 
@@ -59,25 +56,27 @@ public class DelimParser {
         } else {
             nullString = inNullString;
         }
-        delim = ("\\t".equals(delimiter)) ? '\t' : delimiter.charAt(0);
+        char delim = ("\\t".equals(delimiter)) ? '\t' : delimiter.charAt(0);
 
+        char quote;
         if (null == inQuote) {
-            this.quote = DEFAULT_QUOTE;
+            quote = DEFAULT_QUOTE;
         } else {
-            this.quote = inQuote;
+            quote = inQuote;
         }
 
+        char escape;
         if (null == inEscape) {
-            this.escape = DEFAULT_ESCAPE;
+            escape = DEFAULT_ESCAPE;
         } else {
-            this.escape = inEscape;
+            escape = inEscape;
         }
 
         CsvParserSettings settings = new CsvParserSettings();
         settings.getFormat().setLineSeparator("\n");
         settings.getFormat().setDelimiter(delim);
-        settings.getFormat().setQuote(this.quote);
-        settings.getFormat().setQuoteEscape(this.escape);
+        settings.getFormat().setQuote(quote);
+        settings.getFormat().setQuoteEscape(escape);
         if (inMaxCharsPerColumn != null) {
             settings.setMaxCharsPerColumn(inMaxCharsPerColumn);
         }

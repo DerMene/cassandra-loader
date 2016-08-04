@@ -5,11 +5,6 @@ import java.io.PrintStream;
 public class PrintingFutureSet extends ActionFutureSet {
 
     public PrintingFutureSet(int inSize, long inQueryTimeout,
-                             long inMaxInsertErrors) {
-        this(inSize, inQueryTimeout, inMaxInsertErrors, System.err, System.err);
-    }
-
-    public PrintingFutureSet(int inSize, long inQueryTimeout,
                              long inMaxInsertErrors,
                              PrintStream inLogPrinter,
                              PrintStream inBadInsertPrinter) {

@@ -31,35 +31,14 @@ import java.security.cert.CertificateException;
 import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.*;
+import static com.datastax.loader.util.FileUtils.checkFile;
 
 
-public class CqlDelimUnload {
-    private static final String version = "0.0.21-SNAPSHOT";
-    private String host = null;
-    private int port = 9042;
-    private String username = null;
-    private String password = null;
-    private String truststorePath = null;
-    private String truststorePwd = null;
-    private String keystorePath = null;
-    private String keystorePwd = null;
-    private ConsistencyLevel consistencyLevel = ConsistencyLevel.LOCAL_ONE;
+public class CqlDelimUnload extends ConfigurationLoader {
     private Cluster cluster = null;
-    private Session session = null;
     private String beginToken = "-9223372036854775808";
     private String endToken = "9223372036854775807";
     private String where = null;
-
-    private String cqlSchema = null;
-    private String filename = null;
-
-    private Locale locale = null;
-    private BooleanParser.BoolStyle boolStyle = null;
-    private String dateFormatString = null;
-    private String nullString = null;
-    private String delimiter = null;
-
-    private int numThreads = 5;
 
     public static void main(String[] args)
             throws IOException, ParseException, InterruptedException, ExecutionException,
@@ -115,6 +94,7 @@ public class CqlDelimUnload {
         if (filename.equalsIgnoreCase("stdout")) {
             numThreads = 1;
         }
+        final String truststorePath = this.truststorePath;
         if ((null == truststorePath) && (null != truststorePwd)) {
             System.err.println("If you supply the ssl-truststore-pwd, you must supply the ssl-truststore-path");
             return false;
@@ -123,6 +103,7 @@ public class CqlDelimUnload {
             System.err.println("If you supply the ssl-truststore-path, you must supply the ssl-truststore-pwd");
             return false;
         }
+        final String keystorePath = this.keystorePath;
         if ((null == keystorePath) && (null != keystorePwd)) {
             System.err.println("If you supply the ssl-keystore-pwd, you must supply the ssl-keystore-path");
             return false;
@@ -131,21 +112,8 @@ public class CqlDelimUnload {
             System.err.println("If you supply the ssl-keystore-path, you must supply the ssl-keystore-pwd");
             return false;
         }
-        File tfile;
-        if (null != truststorePath) {
-            tfile = new File(truststorePath);
-            if (!tfile.isFile()) {
-                System.err.println("truststore file must be a file");
-                return false;
-            }
-        }
-        if (null != keystorePath) {
-            tfile = new File(keystorePath);
-            if (!tfile.isFile()) {
-                System.err.println("keystore file must be a file");
-                return false;
-            }
-        }
+        if (checkFile(truststorePath, "truststore file must be a file")) return false;
+        if (checkFile(keystorePath, "keystore file must be a file")) return false;
         if ((null != beginToken) && (null == endToken)) {
             System.err.println("If you supply the beginToken then you need to specify the endToken");
             return false;
@@ -158,28 +126,6 @@ public class CqlDelimUnload {
         return true;
     }
 
-    private boolean processConfigFile(String fname, Map<String, String> amap)
-            throws IOException {
-        File cFile = new File(fname);
-        if (!cFile.isFile()) {
-            System.err.println("Configuration File must be a file");
-            return false;
-        }
-
-        BufferedReader cReader = new BufferedReader(new FileReader(cFile));
-        String line;
-        while ((line = cReader.readLine()) != null) {
-            String[] fields = line.trim().split("\\s+");
-            if (2 != fields.length) {
-                System.err.println("Bad line in config file: " + line);
-                return false;
-            }
-            if (null == amap.get(fields[0])) {
-                amap.put(fields[0], fields[1]);
-            }
-        }
-        return true;
-    }
 
     private boolean parseArgs(String[] args)
             throws IOException {

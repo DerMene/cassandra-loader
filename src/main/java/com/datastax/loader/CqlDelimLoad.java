@@ -32,21 +32,11 @@ import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.*;
 
-public class CqlDelimLoad {
+import static com.datastax.loader.util.FileUtils.checkFile;
+
+public class CqlDelimLoad extends ConfigurationLoader {
     public static final String STDIN = "stdin";
     public static final String STDERR = "stderr";
-    private static final String version = "0.0.21-SNAPSHOT";
-    private String host = null;
-    private int port = 9042;
-    private String username = null;
-    private String password = null;
-    private String truststorePath = null;
-    private String truststorePwd = null;
-    private String keystorePath = null;
-    private String keystorePwd = null;
-    private Cluster cluster = null;
-    private Session session = null;
-    private ConsistencyLevel consistencyLevel = ConsistencyLevel.LOCAL_ONE;
     private int numFutures = 1000;
     private int inNumFutures = -1;
     private int queryTimeout = 2;
@@ -57,25 +47,15 @@ public class CqlDelimLoad {
     private RateLimiter rateLimiter = null;
     private String rateFile = null;
     private PrintStream rateStream = null;
-    private String cqlSchema = null;
     private long maxErrors = 10;
     private long skipRows = 0;
     private String skipCols = null;
     private long maxRows = -1;
     private String badDir = ".";
-    private String filename = null;
     private String successDir = null;
     private String failureDir = null;
 
-    private Locale locale = null;
-    private BooleanParser.BoolStyle boolStyle = null;
-    private String dateFormatString = null;
-    private String nullString = null;
-    private String delimiter = null;
     private String filePattern = null;
-    private Character quote = null;
-    private Character escape = null;
-    private Integer maxCharsPerColumn = null;
 
     private int numThreads = Runtime.getRuntime().availableProcessors();
     private int batchSize = 1;
@@ -226,14 +206,15 @@ public class CqlDelimLoad {
             System.err.println("If you supply the username, you must supply the password");
             return false;
         }
-        if ((null == truststorePath) && (null != truststorePwd)) {
+        if ((null == this.truststorePath) && (null != truststorePwd)) {
             System.err.println("If you supply the ssl-truststore-pwd, you must supply the ssl-truststore-path");
             return false;
         }
-        if ((null != truststorePath) && (null == truststorePwd)) {
+        if ((null != this.truststorePath) && (null == truststorePwd)) {
             System.err.println("If you supply the ssl-truststore-path, you must supply the ssl-truststore-pwd");
             return false;
         }
+        final String keystorePath = this.keystorePath;
         if ((null == keystorePath) && (null != keystorePwd)) {
             System.err.println("If you supply the ssl-keystore-pwd, you must supply the ssl-keystore-path");
             return false;
@@ -242,50 +223,14 @@ public class CqlDelimLoad {
             System.err.println("If you supply the ssl-keystore-path, you must supply the ssl-keystore-pwd");
             return false;
         }
-        File tfile;
-        if (null != truststorePath) {
-            tfile = new File(truststorePath);
-            if (!tfile.isFile()) {
-                System.err.println("truststore file must be a file");
-                return false;
-            }
-        }
-        if (null != keystorePath) {
-            tfile = new File(keystorePath);
-            if (!tfile.isFile()) {
-                System.err.println("keystore file must be a file");
-                return false;
-            }
-        }
+        if (checkFile(this.truststorePath, "truststore file must be a file")) return false;
+        if (checkFile(keystorePath, "keystore file must be a file")) return false;
 
         if (0 > rate) {
             System.err.println("Rate must be positive");
             return false;
         }
 
-        return true;
-    }
-
-    private boolean processConfigFile(String fname, Map<String, String> amap)
-            throws IOException {
-        File cFile = new File(fname);
-        if (!cFile.isFile()) {
-            System.err.println("Configuration File must be a file");
-            return false;
-        }
-
-        BufferedReader cReader = new BufferedReader(new FileReader(cFile));
-        String line;
-        while ((line = cReader.readLine()) != null) {
-            String[] fields = line.trim().split("\\s+");
-            if (2 != fields.length) {
-                System.err.println("Bad line in config file: " + line);
-                return false;
-            }
-            if (null == amap.get(fields[0])) {
-                amap.put(fields[0], fields[1]);
-            }
-        }
         return true;
     }
 
