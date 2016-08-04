@@ -274,7 +274,7 @@ public class CqlDelimUnload {
 
         SSLContext sslContext = SSLContext.getInstance("TLS");
         sslContext.init(kmf != null ? kmf.getKeyManagers() : null,
-                tmf != null ? tmf.getTrustManagers() : null,
+                tmf.getTrustManagers(),
                 new SecureRandom());
 
         return JdkSSLOptions.builder().withSSLContext(sslContext).build();
