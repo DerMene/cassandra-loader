@@ -1,17 +1,21 @@
 package com.datastax.loader;
 
-import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.ConsistencyLevel;
-import com.datastax.driver.core.Session;
+import com.datastax.driver.core.*;
+import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
+import com.datastax.driver.core.policies.TokenAwarePolicy;
 import com.datastax.loader.parser.BooleanParser;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
+import java.io.*;
+import java.security.*;
+import java.security.cert.CertificateException;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import static com.datastax.loader.CqlDelimLoad.STDERR;
 import static com.datastax.loader.util.FileUtils.checkFile;
 
 /**
@@ -116,8 +120,172 @@ abstract class ConfigurationLoader {
         }
         if (checkFile(this.truststorePath, "truststore file must be a file")) return false;
         if (checkFile(keystorePath, "keystore file must be a file")) return false;
+        if (filename.equalsIgnoreCase("stdout")) {
+            numThreads = 1;
+        }
 
         return true;
     }
 
+    protected boolean parseArgs(String[] args) throws IOException {
+        if (args.length == 0) {
+            System.err.println("No arguments specified");
+            return false;
+        }
+        if (0 != args.length % 2) {
+            System.err.println("Not an even number of parameters");
+            return false;
+        }
+        Map<String, String> amap = new HashMap<>();
+        for (int i = 0; i < args.length; i += 2)
+            amap.put(args[i], args[i + 1]);
+
+        String tkey;
+        if (null != (tkey = amap.remove("-configFile")))
+            if (!processConfigFile(tkey, amap))
+                return false;
+
+        host = amap.remove("-host");
+        if (null == host) { // host is required
+            System.err.println("Must provide a host");
+            return false;
+        }
+
+        return validateArgs();
+    }
+
+    protected boolean parseArgsFromMap(Map<String, String> amap) {
+        filename = amap.remove("-f");
+        if (null == filename) { // filename is required
+            System.err.println("Must provide a filename/directory");
+            return false;
+        }
+        cqlSchema = amap.remove("-schema");
+        if (null == cqlSchema) { // schema is required
+            System.err.println("Must provide a schema");
+            return false;
+        }
+
+        String tkey;
+        if (null != (tkey = amap.remove("-port"))) port = Integer.parseInt(tkey);
+        if (null != (tkey = amap.remove("-user"))) username = tkey;
+        if (null != (tkey = amap.remove("-pw"))) password = tkey;
+        if (null != (tkey = amap.remove("-ssl-truststore-path"))) truststorePath = tkey;
+        if (null != (tkey = amap.remove("-ssl-truststore-pwd"))) truststorePwd = tkey;
+        if (null != (tkey = amap.remove("-ssl-keystore-path"))) keystorePath = tkey;
+        if (null != (tkey = amap.remove("-ssl-keystore-pwd"))) keystorePwd = tkey;
+        if (null != (tkey = amap.remove("-consistencyLevel"))) consistencyLevel = ConsistencyLevel.valueOf(tkey);
+        if (null != (tkey = amap.remove("-dateFormat"))) dateFormatString = tkey;
+        if (null != (tkey = amap.remove("-nullString"))) nullString = tkey;
+        if (null != (tkey = amap.remove("-delim"))) delimiter = tkey;
+        if (null != (tkey = amap.remove("-maxCharsPerColumn"))) maxCharsPerColumn = Integer.parseInt(tkey);
+        if (null != (tkey = amap.remove("-quote"))) {
+            if (tkey.length() != 1) {
+                System.err.println("Bad quote parameter, must be single character.");
+            }
+            quote = tkey.charAt(0);
+        }
+        if (null != (tkey = amap.remove("-escape"))) {
+            if (tkey.length() != 1) {
+                System.err.println("Bad escape parameter, must be single character.");
+            }
+            escape = tkey.charAt(0);
+        }
+        if (null != (tkey = amap.remove("-decimalDelim"))) {
+            if (tkey.equals(","))
+                locale = Locale.FRANCE;
+        }
+        if (null != (tkey = amap.remove("-boolStyle"))) {
+            boolStyle = BooleanParser.getBoolStyle(tkey);
+            if (null == boolStyle) {
+                System.err.println("Bad boolean style.  Options are: " + BooleanParser.getOptions());
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private SSLOptions createSSLOptions()
+            throws KeyStoreException, IOException, NoSuchAlgorithmException,
+            KeyManagementException, CertificateException, UnrecoverableKeyException {
+        TrustManagerFactory tmf;
+        KeyStore tks = KeyStore.getInstance("JKS");
+        tks.load(new FileInputStream(new File(truststorePath)),
+                truststorePwd.toCharArray());
+        tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        tmf.init(tks);
+
+        KeyManagerFactory kmf = null;
+        if (null != keystorePath) {
+            KeyStore kks = KeyStore.getInstance("JKS");
+            kks.load(new FileInputStream(new File(keystorePath)),
+                    keystorePwd.toCharArray());
+            kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+            kmf.init(kks, keystorePwd.toCharArray());
+        }
+
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(kmf != null ? kmf.getKeyManagers() : null,
+                tmf.getTrustManagers(),
+                new SecureRandom());
+
+        return JdkSSLOptions.builder().withSSLContext(sslContext).build();
+    }
+
+    private Cluster getCluster(int numConnections)
+            throws IOException, KeyStoreException, NoSuchAlgorithmException, KeyManagementException,
+            CertificateException, UnrecoverableKeyException {
+        // Connect to Cassandra
+        PoolingOptions pOpts = new PoolingOptions();
+        pOpts.setMaxConnectionsPerHost(HostDistance.LOCAL, numConnections);
+        pOpts.setCoreConnectionsPerHost(HostDistance.LOCAL, numConnections);
+        Cluster.Builder clusterBuilder = Cluster.builder()
+                .addContactPoint(host)
+                .withPort(port)
+                //.withCompression(ProtocolOptions.Compression.LZ4)
+                .withPoolingOptions(pOpts)
+                .withLoadBalancingPolicy(new TokenAwarePolicy(DCAwareRoundRobinPolicy.builder().build()));
+
+        if (null != username)
+            clusterBuilder = clusterBuilder.withCredentials(username, password);
+        if (null != truststorePath)
+            clusterBuilder = clusterBuilder.withSSL(createSSLOptions());
+
+        final Cluster cluster = clusterBuilder.build();
+        if (null == cluster) {
+            throw new IOException("Could not create cluster");
+        }
+
+        return cluster;
+    }
+
+    public boolean setup()
+            throws IOException, KeyStoreException, NoSuchAlgorithmException, KeyManagementException,
+            CertificateException, UnrecoverableKeyException {
+        cluster = getCluster(getNumConnections());
+        session = getSession(cluster);
+
+        if (session == null) {
+            return false;
+        }
+
+        return true;
+    }
+
+    protected int getNumConnections() {
+        return 8;
+    }
+
+    protected Session getSession(Cluster cluster) throws FileNotFoundException {
+        return cluster.connect();
+    }
+
+
+    protected void cleanup() {
+        if (null != session)
+            session.close();
+        if (null != cluster)
+            cluster.close();
+    }
 }

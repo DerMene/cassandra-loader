@@ -35,7 +35,6 @@ import static com.datastax.loader.util.FileUtils.checkFile;
 
 
 public class CqlDelimUnload extends ConfigurationLoader {
-    private Cluster cluster = null;
     private String beginToken = "-9223372036854775808";
     private String endToken = "9223372036854775807";
     private String where = null;
@@ -68,9 +67,6 @@ public class CqlDelimUnload extends ConfigurationLoader {
     @Override
     protected boolean validateArgs() {
         super.validateArgs();
-        if (filename.equalsIgnoreCase("stdout")) {
-            numThreads = 1;
-        }
         if ((null != beginToken) && (null == endToken)) {
             System.err.println("If you supply the beginToken then you need to specify the endToken");
             return false;
@@ -84,134 +80,20 @@ public class CqlDelimUnload extends ConfigurationLoader {
     }
 
 
-    private boolean parseArgs(String[] args)
-            throws IOException {
+    protected boolean parseArgsFromMap(Map<String, String> amap) {
+        super.parseArgsFromMap(amap);
+
         String tkey;
-        if (args.length == 0) {
-            System.err.println("No arguments specified");
-            return false;
-        }
-        if (0 != args.length % 2)
-            return false;
-
-        Map<String, String> amap = new HashMap<>();
-        for (int i = 0; i < args.length; i += 2) {
-            amap.put(args[i], args[i + 1]);
-        }
-
-        if (null != (tkey = amap.remove("-configFile")))
-            if (!processConfigFile(tkey, amap))
-                return false;
-
-        host = amap.remove("-host");
-        if (null == host) { // host is required
-            System.err.println("Must provide a host");
-            return false;
-        }
-
-        filename = amap.remove("-f");
-        if (null == filename) { // filename is required
-            System.err.println("Must provide an output filename stem");
-            return false;
-        }
-
-        cqlSchema = amap.remove("-schema");
-        if (null == cqlSchema) { // schema is required
-            System.err.println("Must provide a schema");
-            return false;
-        }
-
-        if (null != (tkey = amap.remove("-port"))) port = Integer.parseInt(tkey);
-        if (null != (tkey = amap.remove("-user"))) username = tkey;
-        if (null != (tkey = amap.remove("-pw"))) password = tkey;
-        if (null != (tkey = amap.remove("-ssl-truststore-path"))) truststorePath = tkey;
-        if (null != (tkey = amap.remove("-ssl-truststore-pwd"))) truststorePwd = tkey;
-        if (null != (tkey = amap.remove("-ssl-keystore-path"))) keystorePath = tkey;
-        if (null != (tkey = amap.remove("-ssl-keystore-pwd"))) keystorePwd = tkey;
-        if (null != (tkey = amap.remove("-consistencyLevel"))) consistencyLevel = ConsistencyLevel.valueOf(tkey);
-        if (null != (tkey = amap.remove("-dateFormat"))) dateFormatString = tkey;
-        if (null != (tkey = amap.remove("-nullString"))) nullString = tkey;
-        if (null != (tkey = amap.remove("-delim"))) delimiter = tkey;
-        if (null != (tkey = amap.remove("-decimalDelim"))) {
-            if (tkey.equals(","))
-                locale = Locale.FRANCE;
-        }
-        if (null != (tkey = amap.remove("-boolStyle"))) {
-            boolStyle = BooleanParser.getBoolStyle(tkey);
-            if (null == boolStyle) {
-                System.err.println("Bad boolean style.  Options are: " + BooleanParser.getOptions());
-                return false;
-            }
-        }
-        if (null != (tkey = amap.remove("-numThreads"))) numThreads = Integer.parseInt(tkey);
         if (null != (tkey = amap.remove("-beginToken"))) beginToken = tkey;
         if (null != (tkey = amap.remove("-endToken"))) endToken = tkey;
         if (null != (tkey = amap.remove("-where"))) where = tkey;
 
-        if (!amap.isEmpty()) {
-            for (String k : amap.keySet())
-                System.err.println("Unrecognized option: " + k);
-            return false;
-        }
-        return validateArgs();
+        return true;
     }
 
-    private SSLOptions createSSLOptions()
-            throws KeyStoreException, IOException, NoSuchAlgorithmException,
-            KeyManagementException, CertificateException, UnrecoverableKeyException {
-        TrustManagerFactory tmf;
-        KeyStore tks = KeyStore.getInstance("JKS");
-        tks.load(new FileInputStream(new File(truststorePath)),
-                truststorePwd.toCharArray());
-        tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-        tmf.init(tks);
-
-        KeyManagerFactory kmf = null;
-        if (null != keystorePath) {
-            KeyStore kks = KeyStore.getInstance("JKS");
-            kks.load(new FileInputStream(new File(keystorePath)),
-                    keystorePwd.toCharArray());
-            kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-            kmf.init(kks, keystorePwd.toCharArray());
-        }
-
-        SSLContext sslContext = SSLContext.getInstance("TLS");
-        sslContext.init(kmf != null ? kmf.getKeyManagers() : null,
-                tmf.getTrustManagers(),
-                new SecureRandom());
-
-        return JdkSSLOptions.builder().withSSLContext(sslContext).build();
-    }
-
-    private void setup()
-            throws IOException, KeyStoreException, NoSuchAlgorithmException, KeyManagementException,
-            CertificateException, UnrecoverableKeyException {
-        // Connect to Cassandra
-        PoolingOptions pOpts = new PoolingOptions();
-        pOpts.setCoreConnectionsPerHost(HostDistance.LOCAL, 4);
-        pOpts.setMaxConnectionsPerHost(HostDistance.LOCAL, 4);
-        Cluster.Builder clusterBuilder = Cluster.builder()
-                .addContactPoint(host)
-                .withPort(port)
-                .withPoolingOptions(pOpts)
-                .withLoadBalancingPolicy(new TokenAwarePolicy(DCAwareRoundRobinPolicy.builder().build()));
-        if (null != username)
-            clusterBuilder = clusterBuilder.withCredentials(username, password);
-        if (null != truststorePath)
-            clusterBuilder = clusterBuilder.withSSL(createSSLOptions());
-
-        cluster = clusterBuilder.build();
-        if (null == cluster) {
-            throw new IOException("Could not create cluster");
-        }
-        session = cluster.connect();
-    }
-
-    private void cleanup() {
-        if (null != session)
-            session.close();
-        if (null != cluster)
-            cluster.close();
+    @Override
+    protected int getNumConnections() {
+        return 4;
     }
 
     public boolean run(String[] args)
@@ -225,7 +107,8 @@ public class CqlDelimUnload extends ConfigurationLoader {
         }
 
         // Setup
-        setup();
+        if (!setup())
+            return false;
 
         PrintStream pstream = null;
         if (1 == numThreads) {
