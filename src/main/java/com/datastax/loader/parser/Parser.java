@@ -23,10 +23,9 @@ import java.text.ParseException;
 
 // Parsing Interface - one method parse(String)
 public interface Parser {
-    public Object parse(String toparse) throws ParseException;
-    public Object parse(IndexedLine il, String nullString, Character delim, 
-			Character escape, Character quote, boolean last)
-	throws IOException, ParseException;
-    public String format(Row row, int index) throws IndexOutOfBoundsException, InvalidTypeException;
-    public String format(Object o);
+    Object parse(String toparse) throws ParseException;
+
+    String format(Row row, int index) throws IndexOutOfBoundsException, InvalidTypeException;
+
+    String format(Object o);
 }

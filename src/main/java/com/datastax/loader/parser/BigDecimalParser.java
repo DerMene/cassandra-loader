@@ -20,13 +20,13 @@ import java.math.BigDecimal;
 // BigDecimal parser
 public class BigDecimalParser extends AbstractParser {
     public BigDecimal parse(String toparse) throws NumberFormatException {
-	if (null == toparse)
-	    return null;
-	return new BigDecimal(toparse);
+        if (null == toparse)
+            return null;
+        return new BigDecimal(toparse);
     }
 
     public String format(Object o) {
-	BigDecimal v = (BigDecimal)o;
-	return v.toString();
+        BigDecimal v = (BigDecimal) o;
+        return v.toString();
     }
 }

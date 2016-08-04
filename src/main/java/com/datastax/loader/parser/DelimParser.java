@@ -20,189 +20,132 @@ import com.datastax.driver.core.exceptions.InvalidTypeException;
 import com.univocity.parsers.csv.CsvParser;
 import com.univocity.parsers.csv.CsvParserSettings;
 
-import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class DelimParser {
-    private List<Parser> parsers;
-    private int parsersSize;
-    private List<Object> elements;
-    private String delimiter;
-    private String nullString;
-    private char delim;
-    private char quote;
-    private char escape;
-    private List<Boolean> skip;
-
-    private CsvParser csvp = null;
-
     public static final String DEFAULT_DELIMITER = ",";
     public static final String DEFAULT_NULLSTRING = "";
     public static final char DEFAULT_QUOTE = '\"';
     public static final char DEFAULT_ESCAPE = '\\';
+    private final List<Parser> parsers;
+    private int parsersSize;
+    private final List<Object> elements;
+    private final String delimiter;
+    private final String nullString;
+    private final char delim;
+    private final char quote;
+    private final char escape;
+    private final List<Boolean> skip;
+    private CsvParser csvp = null;
 
-    public DelimParser() {
-	this(DEFAULT_DELIMITER);
+    public DelimParser(String inDelimiter, String inNullString) {
+        this(inDelimiter, inNullString, DEFAULT_QUOTE, DEFAULT_ESCAPE, null);
     }
 
-    public DelimParser(String inDelimiter) {
-	this(inDelimiter, DEFAULT_NULLSTRING);
+    public DelimParser(String inDelimiter, String inNullString, Character inQuote, Character inEscape, Integer inMaxCharsPerColumn) {
+        parsers = new ArrayList<>();
+        elements = new ArrayList<>();
+        skip = new ArrayList<>();
+        parsersSize = parsers.size();
+        if (null == inDelimiter) {
+            delimiter = DEFAULT_DELIMITER;
+        } else {
+            delimiter = inDelimiter;
+        }
+        if (null == inNullString) {
+            nullString = DEFAULT_NULLSTRING;
+        } else {
+            nullString = inNullString;
+        }
+        delim = ("\\t".equals(delimiter)) ? '\t' : delimiter.charAt(0);
+
+        if (null == inQuote) {
+            this.quote = DEFAULT_QUOTE;
+        } else {
+            this.quote = inQuote;
+        }
+
+        if (null == inEscape) {
+            this.escape = DEFAULT_ESCAPE;
+        } else {
+            this.escape = inEscape;
+        }
+
+        CsvParserSettings settings = new CsvParserSettings();
+        settings.getFormat().setLineSeparator("\n");
+        settings.getFormat().setDelimiter(delim);
+        settings.getFormat().setQuote(this.quote);
+        settings.getFormat().setQuoteEscape(this.escape);
+        if (inMaxCharsPerColumn != null) {
+            settings.setMaxCharsPerColumn(inMaxCharsPerColumn);
+        }
+        csvp = new CsvParser(settings);
     }
 
-	public DelimParser(String inDelimiter, String inNullString) {
-		this(inDelimiter, inNullString, DEFAULT_QUOTE, DEFAULT_ESCAPE, null);
-	}
-
-	public DelimParser(String inDelimiter, String inNullString, Character inQuote, Character inEscape, Integer inMaxCharsPerColumn) {
-	parsers = new ArrayList<Parser>();
-	elements = new ArrayList<Object>();
-	skip = new ArrayList<Boolean>();
-	parsersSize = parsers.size();
-	if (null == inDelimiter) {
-		delimiter = DEFAULT_DELIMITER;
-	}
-	else {
-		delimiter = inDelimiter;
-	}
-	if (null == inNullString) {
-		nullString = DEFAULT_NULLSTRING;
-	}
-	else {
-		nullString = inNullString;
-	}
-	delim = ("\\t".equals(delimiter)) ?  '\t' : delimiter.charAt(0);
-
-	if (null == inQuote) {
-		this.quote = DEFAULT_QUOTE;
-	} else {
-		this.quote = inQuote;
-	}
-
-	if (null == inEscape) {
-		this.escape = DEFAULT_ESCAPE;
-	} else {
-		this.escape = inEscape;
-	}
-
-	CsvParserSettings settings = new CsvParserSettings();
-	settings.getFormat().setLineSeparator("\n");
-	settings.getFormat().setDelimiter(delim);
-	settings.getFormat().setQuote(this.quote);
-	settings.getFormat().setQuoteEscape(this.escape);
-	if (inMaxCharsPerColumn != null) {
-		settings.setMaxCharsPerColumn(inMaxCharsPerColumn);
-	}
-	csvp = new CsvParser(settings);
-    }
-    
     // Adds a parser to the list
     public void add(Parser p) {
-	parsers.add(p);
-	skip.add(false);
-	parsersSize = parsers.size();
+        parsers.add(p);
+        skip.add(false);
+        parsersSize = parsers.size();
     }
 
     public void addSkip(int idx) {
-	parsers.add(idx, new StringParser());
-	skip.add(idx, true);
-	parsersSize = parsers.size();
-    }
-
-    // This is where we apply rules like quoting, NULL, etc
-    private String prepareToParse(String toparse) {
-	String trimmedToParse = toparse.trim();
-	if (trimmedToParse.startsWith("\"") && trimmedToParse.endsWith("\""))
-	    trimmedToParse = trimmedToParse.substring(1, trimmedToParse.length() - 1);
-	if (trimmedToParse.equals(nullString))
-	    return null;
-	return trimmedToParse;
+        parsers.add(idx, new StringParser());
+        skip.add(idx, true);
+        parsersSize = parsers.size();
     }
 
     public List<Object> parse(String line) {
-	//return parseComplex(line);
-	return parseWithUnivocity(line);
+        //return parseComplex(line);
+        return parseWithUnivocity(line);
     }
 
     public List<Object> parseWithUnivocity(String line) {
-	String[] row = csvp.parseLine(line);
-	if (row.length != parsersSize) {
-	    System.err.println("Row has different number of fields (" + row.length + ") than expected (" + parsersSize + ")");
-	    return null;
-	}
-	elements.clear();
-	Object toAdd;
-	for (int i = 0; i < parsersSize; i++) {
-	    try {
-		if ((null == row[i]) ||
-		    ((null != nullString) &&
-		     (nullString.equalsIgnoreCase(row[i]))))
-		    toAdd = null;
-		else
-		    toAdd = parsers.get(i).parse(row[i]);
+        String[] row = csvp.parseLine(line);
+        if (row.length != parsersSize) {
+            System.err.println("Row has different number of fields (" + row.length + ") than expected (" + parsersSize + ")");
+            return null;
+        }
+        elements.clear();
+        Object toAdd;
+        for (int i = 0; i < parsersSize; i++) {
+            try {
+                if ((null == row[i]) ||
+                        ((null != nullString) &&
+                                (nullString.equalsIgnoreCase(row[i]))))
+                    toAdd = null;
+                else
+                    toAdd = parsers.get(i).parse(row[i]);
 
-		if (!skip.get(i))
-		    elements.add(toAdd);
-	    }
-	    catch (NumberFormatException e) {
-		System.err.println(String.format("Invalid number in input number %d: %s", i, e.getMessage()));
-		return null;
-	    }
-	    catch (ParseException pe) {
-		System.err.println(String.format("Invalid format in input %d: %s", i, pe.getMessage()));
-		return null;
-	    }
-	}
+                if (!skip.get(i))
+                    elements.add(toAdd);
+            } catch (NumberFormatException e) {
+                System.err.println(String.format("Invalid number in input number %d: %s", i, e.getMessage()));
+                return null;
+            } catch (ParseException pe) {
+                System.err.println(String.format("Invalid format in input %d: %s", i, pe.getMessage()));
+                return null;
+            }
+        }
 
-	return elements;
-    }
-
-    public List<Object> parseComplex(String line) {
-	elements.clear();
-	IndexedLine sr = new IndexedLine(line);
-	for (int i = 0; i < parsersSize; i++) {
-	    try {
-		Object toAdd = parsers.get(i).parse(sr, nullString, delim, 
-						    escape, quote, 
-						    (parsersSize-1 == i));
-		if (!skip.get(i))
-		    elements.add(toAdd);
-	    }
-	    catch (NumberFormatException e) {
-		System.err.println(String.format("Invalid number in input number %d: %s", i, e.getMessage()));
-		return null;
-	    }
-	    catch (ParseException pe) {
-		System.err.println(String.format("Invalid format in input %d: %s", i, pe.getMessage()));
-		return null;
-	    }
-	    catch (IOException e) {
-		System.err.println(String.format("Invalid number of fields - ran out of string: %s", i, e.getMessage()));
-		return null;
-	    }
-	}
-	return elements;
-    }
-
-    // returns an array of Objects - to be used in PreparedStatement.bind()
-    public Object[] getElements() {
-	return elements.toArray();
+        return elements;
     }
 
     public String format(Row row) throws IndexOutOfBoundsException, InvalidTypeException {
-	String s;
-	StringBuilder retVal = new StringBuilder();
-	s = parsers.get(0).format(row, 0);
-	if (null == s)
-	    s = nullString;
-	retVal.append(s);
-	for (int i = 1; i < parsersSize; i++) {
-	    s = parsers.get(i).format(row, i);
-	    if (null == s)
-		s = nullString;
-	    retVal.append(delimiter).append(s);
-	}
-	return retVal.toString();
+        String s;
+        StringBuilder retVal = new StringBuilder();
+        s = parsers.get(0).format(row, 0);
+        if (null == s)
+            s = nullString;
+        retVal.append(s);
+        for (int i = 1; i < parsersSize; i++) {
+            s = parsers.get(i).format(row, i);
+            if (null == s)
+                s = nullString;
+            retVal.append(delimiter).append(s);
+        }
+        return retVal.toString();
     }
 }

@@ -20,20 +20,13 @@ import java.util.Locale;
 
 // Float parser - use the Number parser
 public class FloatParser extends NumberParser {
-    public FloatParser() {
-	super();
-    }
-    
-    public FloatParser(Locale inLocale) {
-	super(inLocale);
-    }
-    
+
     public FloatParser(Locale inLocale, Boolean grouping) {
-	super(inLocale, grouping);
+        super(inLocale, grouping);
     }
 
     public Float parse(String toparse) throws ParseException {
-	Number val = super.parse(toparse);
-	return (null == val) ? null : val.floatValue();
+        Number val = super.parse(toparse);
+        return (null == val) ? null : val.floatValue();
     }
 }

@@ -23,24 +23,25 @@ import java.util.Locale;
 
 // Date parser - takes a format string
 public class DateParser extends AbstractParser {
-    private DateFormat format;
+    private final DateFormat format;
+
     public DateParser(String inFormatString) {
-	if (null == inFormatString)
-	    format = new SimpleDateFormat();
-	else
-	    format = new SimpleDateFormat(inFormatString, Locale.ENGLISH);
+        if (null == inFormatString)
+            format = new SimpleDateFormat();
+        else
+            format = new SimpleDateFormat(inFormatString, Locale.ENGLISH);
     }
-    
+
     public Date parse(String toparse) throws ParseException {
-	if (null == toparse)
-	    return null;
-	return format.parse(toparse);
+        if (null == toparse)
+            return null;
+        return format.parse(toparse);
     }
 
     public String format(Object o) {
-	Date v = (Date)o;
-    if (v == null)
-        return null;
-	return format.format(v);
+        Date v = (Date) o;
+        if (v == null)
+            return null;
+        return format.format(v);
     }
 }

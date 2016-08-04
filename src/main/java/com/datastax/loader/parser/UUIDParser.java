@@ -20,12 +20,13 @@ import java.util.UUID;
 // UUID parser
 public class UUIDParser extends AbstractParser {
     public UUID parse(String toparse) throws IllegalArgumentException {
-	if (null == toparse)
-	    return null;
-	return UUID.fromString(toparse);
+        if (null == toparse)
+            return null;
+        return UUID.fromString(toparse);
     }
+
     public String format(Object o) {
-	UUID v = (UUID)o;
-	return v.toString();
+        UUID v = (UUID) o;
+        return v.toString();
     }
 }

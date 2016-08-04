@@ -22,20 +22,19 @@ import java.text.ParseException;
 // InetAddress parser
 public class InetAddressParser extends AbstractParser {
     public InetAddress parse(String toparse) throws ParseException {
-	if (null == toparse)
-	    return null;
-	InetAddress ret;
-	try {
-	    ret = InetAddress.getByName(toparse);
-	}
-	catch (UnknownHostException uhe) {
-	    throw new ParseException("Error parsing Inet: " + uhe.getMessage(), 0);
-	}
-	return ret;
+        if (null == toparse)
+            return null;
+        InetAddress ret;
+        try {
+            ret = InetAddress.getByName(toparse);
+        } catch (UnknownHostException uhe) {
+            throw new ParseException("Error parsing Inet: " + uhe.getMessage(), 0);
+        }
+        return ret;
     }
 
     public String format(Object o) {
-	InetAddress v = (InetAddress)o;
-	return v.getHostAddress();
+        InetAddress v = (InetAddress) o;
+        return v.getHostAddress();
     }
 }

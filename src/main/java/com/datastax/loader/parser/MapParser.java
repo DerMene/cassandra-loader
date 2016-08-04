@@ -25,93 +25,92 @@ import java.util.Iterator;
 import java.util.Map;
 
 public class MapParser extends AbstractParser {
-    private Parser keyParser;
-    private Parser valueParser;
-    private char collectionDelim;
-    private char collectionBegin;
-    private char collectionEnd;
-    private char collectionQuote = '\"';
-    private char collectionEscape = '\\';
-    private char mapDelim;
-    private String collectionNullString = null;
-    private Map<Object,Object> elements;
-    
+    private final Parser keyParser;
+    private final Parser valueParser;
+    private final char collectionDelim;
+    private final char collectionBegin;
+    private final char collectionEnd;
+    private static final char collectionQuote = '\"';
+    private static final char collectionEscape = '\\';
+    private final char mapDelim;
+    private final Map<Object, Object> elements;
+
     private CsvParser csvp = null;
 
     public MapParser(Parser inKeyParser, Parser inValueParser,
-		     char inCollectionDelim, char inCollectionBegin, 
-		     char inCollectionEnd, char inMapDelim) {
-	keyParser = inKeyParser;
-	valueParser = inValueParser;
-	collectionDelim = inCollectionDelim;
-	collectionBegin = inCollectionBegin;
-	collectionEnd = inCollectionEnd;
-	mapDelim = inMapDelim;
-	elements = new HashMap<Object,Object>();
+                     char inCollectionDelim, char inCollectionBegin,
+                     char inCollectionEnd, char inMapDelim) {
+        keyParser = inKeyParser;
+        valueParser = inValueParser;
+        collectionDelim = inCollectionDelim;
+        collectionBegin = inCollectionBegin;
+        collectionEnd = inCollectionEnd;
+        mapDelim = inMapDelim;
+        elements = new HashMap<>();
 
-	CsvParserSettings settings = new CsvParserSettings();
-	settings.getFormat().setLineSeparator("" + collectionDelim);
-	settings.getFormat().setDelimiter(mapDelim);
-	settings.getFormat().setQuote(collectionQuote);
-	settings.getFormat().setQuoteEscape(collectionEscape);
-	
-	csvp = new CsvParser(settings);
+        CsvParserSettings settings = new CsvParserSettings();
+        settings.getFormat().setLineSeparator("" + collectionDelim);
+        settings.getFormat().setDelimiter(mapDelim);
+        settings.getFormat().setQuote(collectionQuote);
+        settings.getFormat().setQuoteEscape(collectionEscape);
+
+        csvp = new CsvParser(settings);
     }
-    public Object parse(String toparse) throws ParseException {
-	if (null == toparse)
-	    return null;
-	toparse = unquote(toparse);
-	if (!toparse.startsWith(Character.toString(collectionBegin)))
-	    throw new ParseException("Must begin with " + collectionBegin 
-				     + "\n", 0);
-	if (!toparse.endsWith(Character.toString(collectionEnd)))
-	    throw new ParseException("Must end with " + collectionEnd 
-				     + "\n", 0);
-	toparse = toparse.substring(1, toparse.length() - 1);
-	elements.clear();
-	StringReader sr = new StringReader(toparse);
-	csvp.beginParsing(sr);
-	try {
-	    String[] row;
-	    while ((row = csvp.parseNext()) != null) {
-		if ((null == row[0]) || (null == row[1]))
-		    throw new ParseException("Map keys and values must be non-null\n", 0);
-		Object key = keyParser.parse(row[0]);
-		Object value = valueParser.parse(row[1]);
-		if ((null == key) || (null == value))
-		    throw new ParseException("Map keys and values must be non-null\n", 0);
 
-		elements.put(key, value);
-	    }
-	}
-	catch (Exception e) {
-	    throw new ParseException("Trouble parsing : " + e.getMessage(), 0);
-	}
-	return elements;
+    public Object parse(String toparse) throws ParseException {
+        if (null == toparse)
+            return null;
+        toparse = unquote(toparse);
+        if (!toparse.startsWith(Character.toString(collectionBegin)))
+            throw new ParseException("Must begin with " + collectionBegin
+                    + "\n", 0);
+        if (!toparse.endsWith(Character.toString(collectionEnd)))
+            throw new ParseException("Must end with " + collectionEnd
+                    + "\n", 0);
+        toparse = toparse.substring(1, toparse.length() - 1);
+        elements.clear();
+        StringReader sr = new StringReader(toparse);
+        csvp.beginParsing(sr);
+        try {
+            String[] row;
+            while ((row = csvp.parseNext()) != null) {
+                if ((null == row[0]) || (null == row[1]))
+                    throw new ParseException("Map keys and values must be non-null\n", 0);
+                Object key = keyParser.parse(row[0]);
+                Object value = valueParser.parse(row[1]);
+                if ((null == key) || (null == value))
+                    throw new ParseException("Map keys and values must be non-null\n", 0);
+
+                elements.put(key, value);
+            }
+        } catch (Exception e) {
+            throw new ParseException("Trouble parsing : " + e.getMessage(), 0);
+        }
+        return elements;
     }
 
     @SuppressWarnings("unchecked")
     public String format(Object o) {
-	Map<Object,Object> map = (Map<Object,Object>)o;
-	Iterator<Map.Entry<Object,Object> > iter = map.entrySet().iterator();
-	Map.Entry<Object,Object> me;
+        Map<Object, Object> map = (Map<Object, Object>) o;
+        Iterator<Map.Entry<Object, Object>> iter = map.entrySet().iterator();
+        Map.Entry<Object, Object> me;
         StringBuilder sb = new StringBuilder();
-	sb.append(collectionBegin);
-	if (iter.hasNext()) {
-	    me = iter.next();
-	    sb.append(keyParser.format(me.getKey()));
-	    sb.append(mapDelim);
-	    sb.append(valueParser.format(me.getValue()));
-	}
-	while (iter.hasNext()) {
-	    sb.append(collectionDelim);
-	    me = iter.next();
-	    sb.append(keyParser.format(me.getKey()));
-	    sb.append(mapDelim);
-	    sb.append(valueParser.format(me.getValue()));
-	}
-	sb.append(collectionEnd);
+        sb.append(collectionBegin);
+        if (iter.hasNext()) {
+            me = iter.next();
+            sb.append(keyParser.format(me.getKey()));
+            sb.append(mapDelim);
+            sb.append(valueParser.format(me.getValue()));
+        }
+        while (iter.hasNext()) {
+            sb.append(collectionDelim);
+            me = iter.next();
+            sb.append(keyParser.format(me.getKey()));
+            sb.append(mapDelim);
+            sb.append(valueParser.format(me.getValue()));
+        }
+        sb.append(collectionEnd);
 
-	return quote(sb.toString());
+        return quote(sb.toString());
     }
 }

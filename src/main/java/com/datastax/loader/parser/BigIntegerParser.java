@@ -20,13 +20,13 @@ import java.math.BigInteger;
 // BigInteger parser
 public class BigIntegerParser extends AbstractParser {
     public BigInteger parse(String toparse) throws NumberFormatException {
-	if (null == toparse)
-	    return null;
-	return new BigInteger(toparse);
+        if (null == toparse)
+            return null;
+        return new BigInteger(toparse);
     }
 
     public String format(Object o) {
-	BigInteger v = (BigInteger)o;
-	return v.toString();
+        BigInteger v = (BigInteger) o;
+        return v.toString();
     }
 }

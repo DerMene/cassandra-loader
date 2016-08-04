@@ -23,61 +23,59 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ListParser extends AbstractParser {
-    private Parser parser;
-    private char collectionDelim;
-    private char collectionBegin;
-    private char collectionEnd;
-    private char collectionQuote = '\"';
-    private char collectionEscape = '\\';
-    private String collectionNullString = "null";
-    private List<Object> elements;
-    
-    private CsvParser csvp = null;
-    
-    public ListParser(Parser inParser, char inCollectionDelim, 
-		      char inCollectionBegin, char inCollectionEnd) {
-	parser = inParser;
-	collectionDelim = inCollectionDelim;
-	collectionBegin = inCollectionBegin;
-	collectionEnd = inCollectionEnd;
-	elements = new ArrayList<Object>();
+    private final Parser parser;
+    private final char collectionDelim;
+    private final char collectionBegin;
+    private final char collectionEnd;
+    private static final char collectionQuote = '\"';
+    private static final char collectionEscape = '\\';
+    private final List<Object> elements;
 
-	CsvParserSettings settings = new CsvParserSettings();
-	settings.getFormat().setLineSeparator("\n");
-	settings.getFormat().setDelimiter(collectionDelim);
-	settings.getFormat().setQuote(collectionQuote);
-	settings.getFormat().setQuoteEscape(collectionEscape);
-	
-	csvp = new CsvParser(settings);
+    private CsvParser csvp = null;
+
+    public ListParser(Parser inParser, char inCollectionDelim,
+                      char inCollectionBegin, char inCollectionEnd) {
+        parser = inParser;
+        collectionDelim = inCollectionDelim;
+        collectionBegin = inCollectionBegin;
+        collectionEnd = inCollectionEnd;
+        elements = new ArrayList<>();
+
+        CsvParserSettings settings = new CsvParserSettings();
+        settings.getFormat().setLineSeparator("\n");
+        settings.getFormat().setDelimiter(collectionDelim);
+        settings.getFormat().setQuote(collectionQuote);
+        settings.getFormat().setQuoteEscape(collectionEscape);
+
+        csvp = new CsvParser(settings);
     }
 
     public Object parse(String toparse) throws ParseException {
-	if (null == toparse)
-	    return null;
-	toparse = unquote(toparse);
-	if (!toparse.startsWith(Character.toString(collectionBegin)))
-	    throw new ParseException("Must begin with " + collectionBegin 
-				     + "\n", 0);
-	if (!toparse.endsWith(Character.toString(collectionEnd)))
-	    throw new ParseException("Must end with " + collectionEnd 
-				     + "\n", 0);
-	toparse = toparse.substring(1, toparse.length() - 1);
-	String[] row = csvp.parseLine(toparse);
-	elements.clear();
-	try {
-	    for (int i = 0; i < row.length; i++) {
-		if (null == row[i])
-		    throw new ParseException("Sets may not have NULLs\n", 0);
-		Object o = parser.parse(row[i]);
-		if (null == o)
-		    throw new ParseException("Lists may not have NULLs", 0);
-		elements.add(o);
-	    }
-	}
-	catch (Exception e) {
-	    throw new ParseException("Trouble parsing : " + e.getMessage(), 0);
-	}
-	return elements;
+        if (null == toparse)
+            return null;
+        toparse = unquote(toparse);
+        if (!toparse.startsWith(Character.toString(collectionBegin)))
+            throw new ParseException("Must begin with " + collectionBegin
+                    + "\n", 0);
+        if (!toparse.endsWith(Character.toString(collectionEnd)))
+            throw new ParseException("Must end with " + collectionEnd
+                    + "\n", 0);
+        toparse = toparse.substring(1, toparse.length() - 1);
+        String[] row = csvp.parseLine(toparse);
+        elements.clear();
+        try {
+            for (String aRow : row) {
+                if (null == aRow)
+                    throw new ParseException("Sets may not have NULLs\n", 0);
+                Object o = parser.parse(aRow);
+                if (null == o)
+                    throw new ParseException("Lists may not have NULLs", 0);
+                elements.add(o);
+            }
+        } catch (Exception e) {
+            throw new ParseException("Trouble parsing : " + e.getMessage(), 0);
+        }
+        return elements;
     }
 
     //public String format(Row row, int index) {
@@ -86,17 +84,17 @@ public class ListParser extends AbstractParser {
     //	List<Object> list = row.getList(index, Object.class);
     @SuppressWarnings("unchecked")
     public String format(Object o) {
-	List<Object> list = (List<Object>)o;
-	StringBuilder sb = new StringBuilder();
-	sb.append(collectionBegin);
-	if (list.size() > 0) {
-	    for (int i = 0; i < list.size() - 1; i++) {
-		sb.append(parser.format(list.get(i)));
-		sb.append(collectionDelim);
-	    }
-	    sb.append(parser.format(list.get(list.size() - 1)));
-	}
-	sb.append(collectionEnd);
-	return quote(sb.toString());
+        List<Object> list = (List<Object>) o;
+        StringBuilder sb = new StringBuilder();
+        sb.append(collectionBegin);
+        if (list.size() > 0) {
+            for (int i = 0; i < list.size() - 1; i++) {
+                sb.append(parser.format(list.get(i)));
+                sb.append(collectionDelim);
+            }
+            sb.append(parser.format(list.get(list.size() - 1)));
+        }
+        sb.append(collectionEnd);
+        return quote(sb.toString());
     }
 }

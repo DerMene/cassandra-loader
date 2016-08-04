@@ -18,11 +18,11 @@ package com.datastax.loader.parser;
 // String parser - simple
 public class StringParser extends AbstractParser {
     public String parse(String toparse) {
-	return unquote(toparse);
+        return unquote(toparse);
     }
 
     public String format(Object o) {
-	String iv = (String)o;
-	return quote(iv);
+        String iv = (String) o;
+        return quote(iv);
     }
 }

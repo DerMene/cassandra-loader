@@ -20,20 +20,13 @@ import java.util.Locale;
 
 // Double parser - use the Number parser
 public class DoubleParser extends NumberParser {
-    public DoubleParser() {
-	super();
-    }
-    
-    public DoubleParser(Locale inLocale) {
-	super(inLocale);
-    }
 
     public DoubleParser(Locale inLocale, Boolean grouping) {
-	super(inLocale, grouping);
+        super(inLocale, grouping);
     }
-    
+
     public Double parse(String toparse) throws ParseException {
-	Number val = super.parse(toparse);
-	return (null == val) ? null : val.doubleValue();
+        Number val = super.parse(toparse);
+        return (null == val) ? null : val.doubleValue();
     }
 }

@@ -20,20 +20,13 @@ import java.util.Locale;
 
 // Integer parser - use the Number parser
 public class IntegerParser extends NumberParser {
-    public IntegerParser() {
-	super();
-    }
-    
-    public IntegerParser(Locale inLocale) {
-	super(inLocale);
-    }
-    
+
     public IntegerParser(Locale inLocale, Boolean grouping) {
-	super(inLocale, grouping);
+        super(inLocale, grouping);
     }
-    
+
     public Integer parse(String toparse) throws ParseException {
-	Number val = super.parse(toparse);
-	return (null == val) ? null : val.intValue();
+        Number val = super.parse(toparse);
+        return (null == val) ? null : val.intValue();
     }
 }
