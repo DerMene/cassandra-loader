@@ -53,67 +53,24 @@ public class CqlDelimUnload extends ConfigurationLoader {
         }
     }
 
-    private String usage() {
+    protected String usage() {
         StringBuilder usage = new StringBuilder("version: ").append(version).append("\n");
         usage.append("Usage: -f <outputStem> -host <ipaddress> -schema <schema> [OPTIONS]\n");
         usage.append("OPTIONS:\n");
-        usage.append("  -configFile <filename>         File with configuration options\n");
-        usage.append("  -delim <delimiter>             Delimiter to use [,]\n");
-        usage.append("  -dateFormat <dateFormatString> Date format [default for Locale.ENGLISH]\n");
-        usage.append("  -nullString <nullString>       String that signifies NULL [none]\n");
-        usage.append("  -port <portNumber>             CQL Port Number [9042]\n");
-        usage.append("  -user <username>               Cassandra username [none]\n");
-        usage.append("  -pw <password>                 Password for user [none]\n");
-        usage.append("  -ssl-truststore-path <path>    Path to SSL truststore [none]\n");
-        usage.append("  -ssl-truststore-pwd <pwd>       Password for SSL truststore [none]\n");
-        usage.append("  -ssl-keystore-path <path>      Path to SSL keystore [none]\n");
-        usage.append("  -ssl-keystore-pwd <pwd>         Password for SSL keystore [none]\n");
-        usage.append("  -consistencyLevel <CL>         Consistency level [LOCAL_ONE]\n");
-        usage.append("  -decimalDelim <decimalDelim>   Decimal delimiter [.] Other option is ','\n");
-        usage.append("  -boolStyle <boolStyleString>   Style for booleans [TRUE_FALSE]\n");
-        usage.append("  -numThreads <numThreads>       Number of concurrent threads to unload [5]\n");
+        usage.append(commonUsage());
+
         usage.append("  -beginToken <tokenString>      Begin token [none]\n");
         usage.append("  -endToken <tokenString>        End token [none]\n");
         usage.append("  -where <predicate>             WHERE clause [none]\n");
         return usage.toString();
     }
 
-    private boolean validateArgs() {
-        if (numThreads < 1) {
-            System.err.println("Number of threads must be non-negative");
-            return false;
-        }
-        if ((null == username) && (null != password)) {
-            System.err.println("If you supply the password, you must supply the username");
-            return false;
-        }
-        if ((null != username) && (null == password)) {
-            System.err.println("If you supply the username, you must supply the password");
-            return false;
-        }
+    @Override
+    protected boolean validateArgs() {
+        super.validateArgs();
         if (filename.equalsIgnoreCase("stdout")) {
             numThreads = 1;
         }
-        final String truststorePath = this.truststorePath;
-        if ((null == truststorePath) && (null != truststorePwd)) {
-            System.err.println("If you supply the ssl-truststore-pwd, you must supply the ssl-truststore-path");
-            return false;
-        }
-        if ((null != truststorePath) && (null == truststorePwd)) {
-            System.err.println("If you supply the ssl-truststore-path, you must supply the ssl-truststore-pwd");
-            return false;
-        }
-        final String keystorePath = this.keystorePath;
-        if ((null == keystorePath) && (null != keystorePwd)) {
-            System.err.println("If you supply the ssl-keystore-pwd, you must supply the ssl-keystore-path");
-            return false;
-        }
-        if ((null != keystorePath) && (null == keystorePwd)) {
-            System.err.println("If you supply the ssl-keystore-path, you must supply the ssl-keystore-pwd");
-            return false;
-        }
-        if (checkFile(truststorePath, "truststore file must be a file")) return false;
-        if (checkFile(keystorePath, "keystore file must be a file")) return false;
         if ((null != beginToken) && (null == endToken)) {
             System.err.println("If you supply the beginToken then you need to specify the endToken");
             return false;

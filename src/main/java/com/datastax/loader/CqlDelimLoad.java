@@ -74,34 +74,20 @@ public class CqlDelimLoad extends ConfigurationLoader {
         }
     }
 
+
     private String usage() {
         StringBuilder usage = new StringBuilder("version: ").append(version).append("\n");
         usage.append("Usage: -f <filename|directory> -host <ipaddress> -schema <schema> [OPTIONS]\n");
         usage.append("OPTIONS:\n");
-        usage.append("  -configFile <filename>         File with configuration options\n");
-        usage.append("  -delim <delimiter>             Delimiter to use [,]\n");
-        usage.append("  -quote <quote>                 Quote character to use [\"]\n");
-        usage.append("  -escape <escape>               Escape character to use [\\]\n");
-        usage.append("  -dateFormat <dateFormatString> Date format [default for Locale.ENGLISH]\n");
-        usage.append("  -nullString <nullString>       String that signifies NULL [none]\n");
+        usage.append(commonUsage());
+
         usage.append("  -skipRows <skipRows>           Number of rows to skip [0]\n");
         usage.append("  -skipCols <columnsToSkip>      Comma-separated list of columsn to skip in the input file\n");
         usage.append("  -maxRows <maxRows>             Maximum number of rows to read (-1 means all) [-1]\n");
         usage.append("  -maxErrors <maxErrors>         Maximum parse errors to endure [10]\n");
         usage.append("  -badDir <badDirectory>         Directory for where to place badly parsed rows. [none]\n");
-        usage.append("  -port <portNumber>             CQL Port Number [9042]\n");
-        usage.append("  -user <username>               Cassandra username [none]\n");
-        usage.append("  -pw <password>                 Password for user [none]\n");
-        usage.append("  -ssl-truststore-path <path>    Path to SSL truststore [none]\n");
-        usage.append("  -ssl-truststore-pwd <pwd>       Password for SSL truststore [none]\n");
-        usage.append("  -ssl-keystore-path <path>      Path to SSL keystore [none]\n");
-        usage.append("  -ssl-keystore-pwd <pwd>         Password for SSL keystore [none]\n");
-        usage.append("  -consistencyLevel <CL>         Consistency level [LOCAL_ONE]\n");
         usage.append("  -numFutures <numFutures>       Number of CQL futures to keep in flight [1000]\n");
         usage.append("  -batchSize <batchSize>         Number of INSERTs to batch together [1]\n");
-        usage.append("  -decimalDelim <decimalDelim>   Decimal delimiter [.] Other option is ','\n");
-        usage.append("  -boolStyle <boolStyleString>   Style for booleans [TRUE_FALSE]\n");
-        usage.append("  -numThreads <numThreads>       Number of concurrent threads (files) to load [num cores]\n");
         usage.append("  -queryTimeout <# seconds>      Query timeout (in seconds) [2]\n");
         usage.append("  -numRetries <numRetries>       Number of times to retry the INSERT [1]\n");
         usage.append("  -maxInsertErrors <# errors>    Maximum INSERT errors to endure [10]\n");
@@ -111,7 +97,6 @@ public class CqlDelimLoad extends ConfigurationLoader {
         usage.append("  -successDir <dir>              Directory where to move successfully loaded files\n");
         usage.append("  -failureDir <dir>              Directory where to move files that did not successfully load\n");
         usage.append("  -nullsUnset [false|true]       Treat nulls as unset [false]\n");
-        usage.append("  -maxCharsPerColumn <int>       Buffer size for parsing columns [4096]\n");
         usage.append("  -filePattern <pattern>         When -f is a folder: use only files matching this pattern [all files]\n");
 
         usage.append("\n\nExamples:\n");
@@ -121,7 +106,9 @@ public class CqlDelimLoad extends ConfigurationLoader {
         return usage.toString();
     }
 
-    private boolean validateArgs() {
+    @Override
+    protected boolean validateArgs() {
+        super.validateArgs();
         if (0 >= numFutures) {
             System.err.println("Number of futures must be positive (" + numFutures + ")");
             return false;
@@ -156,10 +143,6 @@ public class CqlDelimLoad extends ConfigurationLoader {
         }
         if (0 > progressRate) {
             System.err.println("Progress rate must be non-negative");
-            return false;
-        }
-        if (numThreads < 1) {
-            System.err.println("Number of threads must be non-negative");
             return false;
         }
         if (!STDIN.equalsIgnoreCase(filename)) {
@@ -198,33 +181,6 @@ public class CqlDelimLoad extends ConfigurationLoader {
                 return false;
             }
         }
-        if ((null == username) && (null != password)) {
-            System.err.println("If you supply the password, you must supply the username");
-            return false;
-        }
-        if ((null != username) && (null == password)) {
-            System.err.println("If you supply the username, you must supply the password");
-            return false;
-        }
-        if ((null == this.truststorePath) && (null != truststorePwd)) {
-            System.err.println("If you supply the ssl-truststore-pwd, you must supply the ssl-truststore-path");
-            return false;
-        }
-        if ((null != this.truststorePath) && (null == truststorePwd)) {
-            System.err.println("If you supply the ssl-truststore-path, you must supply the ssl-truststore-pwd");
-            return false;
-        }
-        final String keystorePath = this.keystorePath;
-        if ((null == keystorePath) && (null != keystorePwd)) {
-            System.err.println("If you supply the ssl-keystore-pwd, you must supply the ssl-keystore-path");
-            return false;
-        }
-        if ((null != keystorePath) && (null == keystorePwd)) {
-            System.err.println("If you supply the ssl-keystore-path, you must supply the ssl-keystore-pwd");
-            return false;
-        }
-        if (checkFile(this.truststorePath, "truststore file must be a file")) return false;
-        if (checkFile(keystorePath, "keystore file must be a file")) return false;
 
         if (0 > rate) {
             System.err.println("Rate must be positive");
