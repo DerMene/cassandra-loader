@@ -9,10 +9,10 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class ActionFutureSet extends AbstractFutureManager {
-    protected FutureAction futureAction = null;
     protected final Semaphore available;
     protected final AtomicLong insertErrors;
     protected final AtomicLong numInserted;
+    protected FutureAction futureAction = null;
 
     public ActionFutureSet(int inSize, long inQueryTimeout,
                            long inMaxInsertErrors,

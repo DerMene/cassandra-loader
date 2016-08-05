@@ -17,21 +17,21 @@ package com.datastax.loader;
 
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.exceptions.QueryValidationException;
-import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
-import com.datastax.driver.core.policies.TokenAwarePolicy;
 import com.datastax.loader.parser.BooleanParser;
 
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.math.BigInteger;
-import java.security.*;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.*;
-import static com.datastax.loader.util.FileUtils.checkFile;
 
 
 public class CqlDelimUnload extends ConfigurationLoader {
@@ -199,10 +199,9 @@ public class CqlDelimUnload extends ConfigurationLoader {
     class ThreadExecute implements Callable<Long> {
         private final Session session;
         private final ConsistencyLevel consistencyLevel;
+        private final String cqlSchema;
         private PreparedStatement statement;
         private CqlDelimParser cdp;
-
-        private final String cqlSchema;
         private Locale locale = null;
         private BooleanParser.BoolStyle boolStyle = null;
         private String nullString = null;

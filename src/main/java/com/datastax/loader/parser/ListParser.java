@@ -23,12 +23,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ListParser extends AbstractParser {
+    private static final char collectionQuote = '\"';
+    private static final char collectionEscape = '\\';
     private final Parser parser;
     private final char collectionDelim;
     private final char collectionBegin;
     private final char collectionEnd;
-    private static final char collectionQuote = '\"';
-    private static final char collectionEscape = '\\';
     private final List<Object> elements;
 
     private CsvParser csvp = null;

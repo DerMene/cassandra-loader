@@ -9,7 +9,12 @@ Usage has changed, since I removed the custom build steps:
 ```
 java -cp <jar file> com.datastax.loader.CqlDelimLoad -f <filename> -host <ipaddress> -schema <schema> [OPTIONS]
 ```
+instead of
+```
+cassandra-loader -f <filename> -host <ipaddress> -schema <schema> [OPTIONS]
+```
 
+This fork also uses java code conventions and the gradle build doesn't rely on shell scripts and should run on any os.
 
 ## Introduction
 
@@ -191,11 +196,11 @@ To create the escape character inside a quoted string, use it twice.  If you quo
 
 #### Example
 ```
-"Some people call me the ""space cowboy"" yeah"
+"Some people call me the ""space cowboy"", yeah"
 ```
 with `-quote "` and `-escape "` results in
 ```
-Some people call me the "space cowboy" yeah
+Some people call me the "space cowboy", yeah
 ```
 Note that your shell might require additional quoting.
 

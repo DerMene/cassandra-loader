@@ -18,7 +18,6 @@ package com.datastax.loader.parser;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.exceptions.InvalidTypeException;
 
-import java.io.IOException;
 import java.text.ParseException;
 
 // Parsing Interface - one method parse(String)

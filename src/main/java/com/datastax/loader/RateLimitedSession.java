@@ -28,7 +28,7 @@ public class RateLimitedSession extends EnhancedSession {
         batchClass = batch.getClass();
     }
 
-	public ResultSet execute(Statement statement) {
+    public ResultSet execute(Statement statement) {
         rateLimiter.acquire();
         return super.execute(statement);
     }

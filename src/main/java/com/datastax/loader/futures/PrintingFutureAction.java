@@ -5,9 +5,9 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class PrintingFutureAction implements FutureAction {
     protected final long period = 100000;
+    protected final AtomicLong numInserted;
     protected PrintStream logPrinter = null;
     protected PrintStream badInsertPrinter = null;
-    protected final AtomicLong numInserted;
 
     public PrintingFutureAction(PrintStream inLogPrinter,
                                 PrintStream inBadInsertPrinter) {

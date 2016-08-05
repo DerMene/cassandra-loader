@@ -15,24 +15,22 @@
  */
 package com.datastax.loader;
 
-import com.datastax.driver.core.*;
-import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
-import com.datastax.driver.core.policies.TokenAwarePolicy;
-import com.datastax.loader.parser.BooleanParser;
+import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.Metrics;
+import com.datastax.driver.core.ProtocolVersion;
+import com.datastax.driver.core.Session;
 
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
 import java.io.*;
 import java.nio.file.FileSystems;
 import java.nio.file.PathMatcher;
-import java.security.*;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.*;
-
-import static com.datastax.loader.util.FileUtils.checkFile;
 
 public class CqlDelimLoad extends ConfigurationLoader {
     public static final String STDIN = "stdin";

@@ -25,13 +25,13 @@ import java.util.Iterator;
 import java.util.Map;
 
 public class MapParser extends AbstractParser {
+    private static final char collectionQuote = '\"';
+    private static final char collectionEscape = '\\';
     private final Parser keyParser;
     private final Parser valueParser;
     private final char collectionDelim;
     private final char collectionBegin;
     private final char collectionEnd;
-    private static final char collectionQuote = '\"';
-    private static final char collectionEscape = '\\';
     private final char mapDelim;
     private final Map<Object, Object> elements;
 

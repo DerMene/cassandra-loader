@@ -29,33 +29,32 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 class CqlDelimLoadTask implements Callable<Long> {
-    private final CqlDelimParser cdp;
     private static final String BADPARSE = ".BADPARSE";
     private static final String BADINSERT = ".BADINSERT";
     private static final String LOG = ".LOG";
+    private final CqlDelimParser cdp;
     private final Session session;
-    private PreparedStatement statement;
     private final ConsistencyLevel consistencyLevel;
     private final long maxErrors;
-    private long skipRows;
-    private long maxRows;
     private final String badDir;
     private final String successDir;
     private final String failureDir;
+    private final File infile;
+    private final int numFutures;
+    private final int batchSize;
+    private final boolean nullsUnset;
+    private PreparedStatement statement;
+    private long skipRows;
+    private long maxRows;
     private String readerName;
     private PrintStream badParsePrinter = null;
     private PrintStream badInsertPrinter = null;
     private PrintStream logPrinter = null;
     private String logFname = "";
     private BufferedReader reader;
-    private final File infile;
-    private final int numFutures;
-    private final int batchSize;
-
     private long queryTimeout = 2;
     private int numRetries = 1;
     private long maxInsertErrors = 10;
-    private final boolean nullsUnset;
 
     public CqlDelimLoadTask(long inMaxErrors, long inSkipRows,
                             long inMaxRows,

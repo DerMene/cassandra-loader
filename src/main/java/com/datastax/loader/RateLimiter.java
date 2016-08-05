@@ -27,8 +27,8 @@ public class RateLimiter {
     private final AtomicLong numAcquires;
     private final Timer timer;
     private final PrintStream stream;
-    private long lastVal;
     private final long firstTime;
+    private long lastVal;
     private long lastTime;
 
     public RateLimiter(double inRate, long inUpdateRate,

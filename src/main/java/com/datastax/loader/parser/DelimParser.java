@@ -30,11 +30,11 @@ public class DelimParser {
     private static final char DEFAULT_QUOTE = '\"';
     private static final char DEFAULT_ESCAPE = '\\';
     private final List<Parser> parsers;
-    private int parsersSize;
     private final List<Object> elements;
     private final String delimiter;
     private final String nullString;
     private final List<Boolean> skip;
+    private int parsersSize;
     private CsvParser csvp = null;
 
     public DelimParser(String inDelimiter, String inNullString) {

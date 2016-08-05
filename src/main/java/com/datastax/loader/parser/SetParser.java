@@ -24,12 +24,12 @@ import java.util.Iterator;
 import java.util.Set;
 
 public class SetParser extends AbstractParser {
+    private static final char collectionQuote = '\"';
+    private static final char collectionEscape = '\\';
     private final Parser parser;
     private final char collectionDelim;
     private final char collectionBegin;
     private final char collectionEnd;
-    private static final char collectionQuote = '\"';
-    private static final char collectionEscape = '\\';
     private final Set<Object> elements;
 
     private CsvParser csvp = null;

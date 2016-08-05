@@ -15,7 +15,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import static com.datastax.loader.CqlDelimLoad.STDERR;
 import static com.datastax.loader.util.FileUtils.checkFile;
 
 /**
